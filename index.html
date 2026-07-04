@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edições Cariocas</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+<div id="cena">
+
+    <img id="silhueta" src="svg/silhueta.svg" alt="Silhueta">
+
+    <img id="bicicleta" src="svg/bicicleta.svg" alt="Bicicleta">
+
+    <img id="poste-interativo"
+         src="svg/placas.svg"
+         alt="Poste e Placas">
+
+    <!-- HOTSPOTS -->
+    <div id="hotspots">
+
+        <button id="btn-missao"
+           type="button"
+           aria-label="Missão"
+           aria-expanded="false"
+           aria-controls="texto-missao"></button>
+
+        <button id="btn-quem"
+           type="button"
+           aria-label="Quem Somos"
+           aria-expanded="false"
+           aria-controls="texto-quem"></button>
+
+        <button id="btn-publicacoes"
+           type="button"
+           aria-label="Publicações"
+           aria-expanded="false"
+           aria-controls="faixa-publicacoes"></button>
+
+        <button id="btn-servicos"
+           type="button"
+           aria-label="Serviços"
+           aria-expanded="false"
+           aria-controls="faixa-servicos"></button>
+
+        <button id="btn-contato"
+           type="button"
+           aria-label="Contato"
+           aria-expanded="false"
+           aria-controls="texto-contato"></button>
+
+    </div>
+
+    <!-- PAINÉIS DE TEXTO (Missão e Quem Somos) — preenchidos via conteudo.js -->
+    <div id="texto-missao" class="painel-info" role="dialog" aria-label="Missão">
+        <section id="missao" style="padding: 0 20px 40px 20px; margin-top: -30px; max-width: 750px; margin-left: auto; margin-right: auto; text-align: justify; line-height: 1.7; font-family: 'Georgia', serif; color: #333;">
+            <!-- conteúdo inserido por main.js a partir de conteudo.js (CONTEUDO.missao) -->
+        </section>
+    </div>
+
+    <div id="texto-quem" class="painel-info" role="dialog" aria-label="Quem Somos">
+        <button type="button" class="fechar-painel" aria-label="Fechar">&times;</button>
+        <section id="quem-somos" style="padding: 0 20px 40px 20px; margin-top: -30px; max-width: 750px; margin-left: auto; margin-right: auto; text-align: justify; line-height: 1.7; font-family: 'Georgia', serif; color: #333;">
+            <!-- conteúdo inserido por main.js a partir de conteudo.js (CONTEUDO.quem) -->
+        </section>
+    </div>
+
+    <!-- FAIXA DE PUBLICAÇÕES (CARROSSEL DE CAPAS) -->
+    <div id="faixa-publicacoes" class="faixa-carrossel" role="dialog" aria-label="Publicações">
+        <button type="button" class="fechar-painel fechar-faixa" aria-label="Fechar">&times;</button>
+        <div id="trilho-carrossel" class="trilho-carrossel">
+            <!-- Os itens são inseridos dinamicamente via JS (CONTEUDO.publicacoes.livros) -->
+        </div>
+    </div>
+
+    <!-- PAINEL DE DETALHES DO LIVRO (abre ao clicar numa capa do carrossel) -->
+    <div id="detalhe-livro" class="painel-info painel-detalhe-livro" role="dialog" aria-label="Detalhes do livro">
+        <button type="button" class="fechar-painel" aria-label="Fechar">&times;</button>
+        <img id="detalhe-livro-capa" src="" alt="">
+        <h2 id="detalhe-livro-titulo"></h2>
+        <p id="detalhe-livro-sinopse"></p>
+        <div id="detalhe-livro-vendas"></div>
+        <a id="detalhe-livro-link" href="#" target="_blank" rel="noopener">Saiba mais</a>
+    </div>
+
+    <!-- FAIXA DE SERVIÇOS (CARROSSEL DE CARDS) -->
+    <div id="faixa-servicos" class="faixa-carrossel" role="dialog" aria-label="Serviços">
+        <button type="button" class="fechar-painel fechar-faixa" aria-label="Fechar">&times;</button>
+        <div id="trilho-servicos" class="trilho-carrossel">
+            <!-- Os itens são inseridos dinamicamente via JS (CONTEUDO.servicos.itens) -->
+        </div>
+    </div>
+
+    <!-- PAINEL DE DETALHES DO SERVIÇO (abre ao clicar num card do carrossel) -->
+    <div id="detalhe-servico" class="painel-info painel-detalhe-livro" role="dialog" aria-label="Detalhes do serviço">
+        <button type="button" class="fechar-painel" aria-label="Fechar">&times;</button>
+        <img id="detalhe-servico-capa" src="" alt="">
+        <h2 id="detalhe-servico-titulo"></h2>
+        <p id="detalhe-servico-descricao"></p>
+    </div>
+
+    <!-- PAINEL DE CONTATO -->
+    <div id="texto-contato" class="painel-info painel-contato" role="dialog" aria-label="Contato">
+        <button type="button" class="fechar-painel" aria-label="Fechar">&times;</button>
+
+        <h2>Fale conosco</h2>
+
+        <a id="link-whatsapp"
+           class="botao-whatsapp"
+           href="https://wa.me/5521995751613?text=Ol%C3%A1%2C%20vim%20atrav%C3%A9s%20do%20site%20da%20Edi%C3%A7%C3%B5es%20Cariocas"
+           target="_blank"
+           rel="noopener">
+            Conversar no WhatsApp
+        </a>
+
+        <p class="contato-ou">ou escreva para o nosso e-mail:</p>
+        <button id="link-email" type="button" class="link-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="19787e6a7478776c6a7a6b706d766a597e74787075377a7674">[email&#160;protected]</a></button>
+        <span id="link-email-msg" class="link-email-msg">copiado ✓</span>
+    </div>
+
+    <div id="container-logo">
+
+        <img id="logo"
+             src="svg/logo.svg"
+             alt="Logo">
+
+        <div id="gatilho-logo"></div>
+
+        <div id="texto-logo">
+
+            <button type="button" id="fechar-texto-logo" class="fechar-painel" aria-label="Fechar">&times;</button>
+
+            <p><!-- poema inserido por main.js a partir de conteudo.js (CONTEUDO.poema) --></p>
+
+        </div>
+
+    </div>
+
+    <div id="escuro"></div>
+
+    <!-- Aviso visível apenas em retrato (controlado via CSS), sugerindo
+         girar o aparelho para a experiência completa com a ilustração. -->
+    <div id="aviso-retrato" role="status">
+        Para a melhor experiência, gire o aparelho na horizontal.
+    </div>
+
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    // Redireciona para a versão mobile (celular.html) se a tela estiver
+    // em retrato. Reavalia ao girar o aparelho.
+    (function () {
+        var consulta = window.matchMedia('(max-aspect-ratio: 4/5)');
+        function verificar(e) {
+            if (e.matches) window.location.replace('celular.html');
+        }
+        verificar(consulta);
+        if (consulta.addEventListener) {
+            consulta.addEventListener('change', verificar);
+        } else if (consulta.addListener) {
+            consulta.addListener(verificar);
+        }
+    })();
+</script>
+
+<!-- Fonte única de conteúdo — deve vir ANTES do main.js -->
+<script src="conteudo.js"></script>
+<script src="main.js"></script>
+
+</body>
+</html>
