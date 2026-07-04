@@ -292,7 +292,7 @@ body{
     height: 22vh;
     min-height: 160px;
     z-index: 15;
-    background: rgba(44, 62, 80, 0.92);
+    background: rgba(44, 62, 80, 0.32);
     padding: 16px 24px;
     box-sizing: border-box;
 
