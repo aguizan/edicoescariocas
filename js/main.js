@@ -462,172 +462,13 @@ console.log("Projeto iniciado.");
         aoClicarItem: painelLivro.abrir,
     });
 
-    // ---- Orçamento de impressão (calculadora) — dados de conteudo.js ----
-
-    function criarOrcamento() {
-        const painel = document.getElementById('orcamento-impressao');
-        const corpo = document.getElementById('orcamento-corpo');
-        const cfg = C.orcamento || {};
-        const numWa = (C.contato && C.contato.whatsapp) || '';
-        const simbolo = cfg.moeda || 'R$';
-
-        const elTit = document.getElementById('orcamento-titulo');
-        if (elTit && cfg.titulo) elTit.textContent = cfg.titulo;
-
-        function fmt(v) { return simbolo + ' ' + (v || 0).toFixed(2).replace('.', ','); }
-
-        function opcoes(obj) {
-            return Object.keys(obj || {}).map(function (k) {
-                return '<option value="' + k + '">' + k + '</option>';
-            }).join('');
-        }
-
-        function campoSelect(id, rotulo, obj) {
-            return '<label class="orc-campo"><span>' + rotulo + '</span>'
-                + '<select id="' + id + '">' + opcoes(obj) + '</select></label>';
-        }
-
-        function montar() {
-            if (!corpo) return;
-            corpo.innerHTML =
-                '<label class="orc-campo"><span>Título do livro</span>'
-                + '<input type="text" id="orc-titulo" placeholder="Nome da obra"></label>'
-                + '<label class="orc-campo"><span>Quantidade de páginas</span>'
-                + '<input type="number" id="orc-paginas" min="1" step="1" value="100"></label>'
-                + campoSelect('orc-formato', 'Formato', cfg.formato)
-                + campoSelect('orc-papel', 'Papel', cfg.papel)
-                + campoSelect('orc-miolo', 'Miolo', cfg.miolo)
-                + campoSelect('orc-capa', 'Capa', cfg.capa)
-                + campoSelect('orc-laminacao', 'Laminação', cfg.laminacao)
-                + '<div class="orc-extras-titulo">Serviços extras</div>'
-                + '<label class="orc-check"><input type="checkbox" id="orc-isbn"> ISBN</label>'
-                + '<label class="orc-check"><input type="checkbox" id="orc-ficha"> Ficha catalográfica</label>'
-                + '<label class="orc-check"><input type="checkbox" id="orc-codigo"> Código de barras</label>'
-                + '<button type="button" class="orc-btn-calcular" id="orc-calcular">Calcular orçamento</button>'
-                + '<div id="orc-resultado"></div>';
-            const btn = corpo.querySelector('#orc-calcular');
-            if (btn) btn.addEventListener('click', calcular);
-        }
-
-        function coletar() {
-            function val(id) { var e = document.getElementById(id); return e ? e.value : ''; }
-            function marc(id) { var e = document.getElementById(id); return !!(e && e.checked); }
-            return {
-                titulo: val('orc-titulo'),
-                paginas: parseInt(val('orc-paginas'), 10) || 0,
-                formato: val('orc-formato'),
-                papel: val('orc-papel'),
-                miolo: val('orc-miolo'),
-                capa: val('orc-capa'),
-                laminacao: val('orc-laminacao'),
-                isbn: marc('orc-isbn'),
-                ficha: marc('orc-ficha'),
-                codigo: marc('orc-codigo')
-            };
-        }
-
-        function total(d) {
-            var t = 0;
-            t += (cfg.precoPorPagina || 0) * d.paginas;
-            t += (cfg.formato && cfg.formato[d.formato]) || 0;
-            t += (cfg.papel && cfg.papel[d.papel]) || 0;
-            t += (cfg.miolo && cfg.miolo[d.miolo]) || 0;
-            t += (cfg.capa && cfg.capa[d.capa]) || 0;
-            t += (cfg.laminacao && cfg.laminacao[d.laminacao]) || 0;
-            if (d.isbn) t += cfg.isbn || 0;
-            if (d.ficha) t += cfg.fichaCatalografica || 0;
-            if (d.codigo) t += cfg.codigoBarras || 0;
-            return t;
-        }
-
-        function mensagem(d, t, cliente) {
-            var L = [];
-            if (cliente) {
-                L.push('✅ ORÇAMENTO ACEITO — pedido de impressão');
-                L.push('');
-                L.push('Nome: ' + (cliente.nome || ''));
-                L.push('E-mail: ' + (cliente.email || ''));
-                L.push('WhatsApp: ' + (cliente.fone || ''));
-                L.push('');
-                L.push('--- Especificações ---');
-            } else {
-                L.push('Olá! Gostaria de um orçamento de impressão:');
-            }
-            if (d.titulo) L.push('Título: ' + d.titulo);
-            L.push('Páginas: ' + d.paginas);
-            L.push('Formato: ' + d.formato);
-            L.push('Papel: ' + d.papel);
-            L.push('Miolo: ' + d.miolo);
-            L.push('Capa: ' + d.capa);
-            L.push('Laminação: ' + d.laminacao);
-            var extras = [];
-            if (d.isbn) extras.push('ISBN');
-            if (d.ficha) extras.push('Ficha catalográfica');
-            if (d.codigo) extras.push('Código de barras');
-            L.push('Extras: ' + (extras.length ? extras.join(', ') : 'nenhum'));
-            L.push('');
-            L.push('Valor (1 exemplar): ' + fmt(t));
-            return L.join('\n');
-        }
-
-        var ultimoD = null, ultimoT = 0;
-
-        function enviarPedido() {
-            function val(id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; }
-            var cliente = { nome: val('orc-nome'), email: val('orc-email'), fone: val('orc-fone') };
-            if (!cliente.nome) { var n = document.getElementById('orc-nome'); if (n) n.focus(); return; }
-            if (!numWa) return;
-            var url = 'https://wa.me/' + numWa + '?text=' + encodeURIComponent(mensagem(ultimoD, ultimoT, cliente));
-            window.open(url, '_blank', 'noopener');
-        }
-
-        function calcular() {
-            ultimoD = coletar();
-            ultimoT = total(ultimoD);
-            var res = document.getElementById('orc-resultado');
-            if (!res) return;
-            var html = '<div class="orc-total"><span class="valor">' + fmt(ultimoT) + '</span>'
-                + '<span class="rotulo">estimativa para 1 exemplar</span></div>';
-            html += '<button type="button" class="orc-btn-aceitar" id="orc-aceitar">Aceitar orçamento</button>';
-            html += '<div id="orc-dados" style="display:none">'
-                + '<div class="orc-extras-titulo">Seus dados</div>'
-                + '<label class="orc-campo"><span>Nome</span><input type="text" id="orc-nome"></label>'
-                + '<label class="orc-campo"><span>E-mail</span><input type="email" id="orc-email"></label>'
-                + '<label class="orc-campo"><span>WhatsApp</span><input type="tel" id="orc-fone" placeholder="(DDD) número"></label>'
-                + '<button type="button" class="orc-whatsapp" id="orc-enviar" style="border:none;cursor:pointer;width:100%">Enviar pedido pelo WhatsApp</button>'
-                + '</div>';
-            res.innerHTML = html;
-            var bAce = document.getElementById('orc-aceitar');
-            if (bAce) bAce.addEventListener('click', function () {
-                var f = document.getElementById('orc-dados');
-                if (f) f.style.display = 'block';
-                bAce.style.display = 'none';
-                var n = document.getElementById('orc-nome'); if (n) n.focus();
-            });
-            var bEnv = document.getElementById('orc-enviar');
-            if (bEnv) bEnv.addEventListener('click', enviarPedido);
-        }
-
-        function abrir() { if (painel) painel.classList.add('ativo'); }
-        function fechar() { if (painel) painel.classList.remove('ativo'); }
-
-        const bf = painel ? painel.querySelector('.fechar-painel') : null;
-        if (bf) bf.addEventListener('click', function (e) { e.stopPropagation(); fechar(); });
-
-        montar();
-        return { abrir: abrir, fechar: fechar };
-    }
-
-    const orcamentoImpressao = criarOrcamento();
-
     // ---- Serviços (carrossel de cards) — dados de conteudo.js ----
 
     const DADOS_SERVICOS = ((C.servicos && C.servicos.itens) || []).map(function (s) {
         return {
             titulo: s.titulo || '',
             capa: s.capa || '',
-            texto: s.descricao || '',
-            tipo: s.tipo || ''
+            texto: s.descricao || ''
         };
     });
 
@@ -642,15 +483,7 @@ console.log("Projeto iniciado.");
         faixaId: 'faixa-servicos',
         trilhoId: 'trilho-servicos',
         dados: DADOS_SERVICOS,
-        aoClicarItem: function (item) {
-            painelServico.fechar();
-            orcamentoImpressao.fechar();
-            if (item.tipo === 'orcamento') {
-                orcamentoImpressao.abrir();
-            } else {
-                painelServico.abrir(item);
-            }
-        },
+        aoClicarItem: painelServico.abrir,
     });
 
     // ---- Texto da logo / poesia (clique) ----
@@ -701,7 +534,6 @@ console.log("Projeto iniciado.");
             carrosselServicos.fechar();
             painelLivro.fechar();
             painelServico.fechar();
-            orcamentoImpressao.fechar();
             fecharTextoLogo();
         }
     });
@@ -714,7 +546,6 @@ console.log("Projeto iniciado.");
             carrosselServicos.fechar();
             painelLivro.fechar();
             painelServico.fechar();
-            orcamentoImpressao.fechar();
             fecharTextoLogo();
         }
     });

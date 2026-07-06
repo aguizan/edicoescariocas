@@ -415,13 +415,76 @@
     var ss=document.querySelectorAll('#pb-serv .bookcard');
     for(var si=0;si<ss.length;si++){ ss[si].addEventListener('click',function(){ abrirServico(+this.getAttribute('data-servico')); }); }
   }
+  function orcHTML(){
+    var o=(C.orcamento)||{};
+    function ops(obj){return Object.keys(obj||{}).map(function(k){return '<option value="'+esc(k)+'">'+esc(k)+'</option>';}).join('');}
+    var inp='width:100%;font-size:16px;padding:11px 12px;border:1px solid rgba(26,26,26,.28);border-radius:8px;background:#fff;color:#1a1a1a;font-family:inherit;margin-top:6px';
+    var lab='display:block;margin-top:16px;font-size:14px;color:rgba(26,26,26,.7)';
+    function sel(id,rot,obj){return '<label style="'+lab+'">'+rot+'<select id="'+id+'" style="'+inp+'">'+ops(obj)+'</select></label>';}
+    function chk(id,rot){return '<label style="display:flex;align-items:center;gap:10px;margin-top:12px;font-size:16px;color:#1a1a1a"><input type="checkbox" id="'+id+'" style="width:20px;height:20px;flex:0 0 auto"> '+rot+'</label>';}
+    return '<label style="'+lab+'">Título do livro<input type="text" id="orc-titulo" placeholder="Nome da obra" style="'+inp+'"></label>'
+      +'<label style="'+lab+'">Quantidade de páginas<input type="number" id="orc-paginas" min="1" step="1" value="100" style="'+inp+'"></label>'
+      +sel('orc-formato','Formato',o.formato)+sel('orc-papel','Papel',o.papel)+sel('orc-miolo','Miolo',o.miolo)+sel('orc-capa','Capa',o.capa)+sel('orc-laminacao','Laminação',o.laminacao)
+      +'<div style="margin-top:22px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,26,26,.5)">Serviços extras</div>'
+      +chk('orc-isbn','ISBN')+chk('orc-ficha','Ficha catalográfica')+chk('orc-codigo','Código de barras')
+      +'<button type="button" id="orc-calcular" style="margin-top:22px;width:100%;padding:15px;border:none;border-radius:8px;background:#1a1a1a;color:#f4f4f2;font-size:15px;font-family:inherit;cursor:pointer">Calcular orçamento</button>'
+      +'<div id="orc-resultado"></div>';
+  }
+  function orcCalcular(){
+    var o=(C.orcamento)||{}, sym=o.moeda||'R$', numWa=(C.contato&&C.contato.whatsapp)||'';
+    function val(id){var e=document.getElementById(id);return e?e.value:'';}
+    function mk(id){var e=document.getElementById(id);return !!(e&&e.checked);}
+    function fmt(v){return sym+' '+(v||0).toFixed(2).replace('.',',');}
+    var d={titulo:val('orc-titulo'),paginas:parseInt(val('orc-paginas'),10)||0,formato:val('orc-formato'),papel:val('orc-papel'),miolo:val('orc-miolo'),capa:val('orc-capa'),laminacao:val('orc-laminacao'),isbn:mk('orc-isbn'),ficha:mk('orc-ficha'),codigo:mk('orc-codigo')};
+    var t=(o.precoPorPagina||0)*d.paginas;
+    t+=(o.formato&&o.formato[d.formato])||0; t+=(o.papel&&o.papel[d.papel])||0; t+=(o.miolo&&o.miolo[d.miolo])||0; t+=(o.capa&&o.capa[d.capa])||0; t+=(o.laminacao&&o.laminacao[d.laminacao])||0;
+    if(d.isbn)t+=o.isbn||0; if(d.ficha)t+=o.fichaCatalografica||0; if(d.codigo)t+=o.codigoBarras||0;
+    window.__ORC={d:d,t:t,numWa:numWa,fmt:fmt};
+    var res=document.getElementById('orc-resultado'); if(!res)return;
+    var inp='width:100%;font-size:16px;padding:11px 12px;border:1px solid rgba(26,26,26,.28);border-radius:8px;background:#fff;color:#1a1a1a;font-family:inherit;margin-top:6px';
+    var lab='display:block;margin-top:16px;font-size:14px;color:rgba(26,26,26,.7)';
+    var html='<div style="text-align:center;margin-top:22px"><span style="display:block;font-family:\'Instrument Serif\',serif;font-size:40px;color:#1a1a1a">'+fmt(t)+'</span><span style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,26,26,.5)">estimativa para 1 exemplar</span></div>';
+    html+='<button type="button" id="orc-aceitar" style="margin-top:16px;width:100%;padding:15px;border:none;border-radius:8px;background:#25d366;color:#fff;font-size:15px;font-family:inherit;cursor:pointer">Aceitar orçamento</button>';
+    html+='<div id="orc-dados" style="display:none">'
+      +'<div style="margin-top:22px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,26,26,.5)">Seus dados</div>'
+      +'<label style="'+lab+'">Nome<input type="text" id="orc-nome" style="'+inp+'"></label>'
+      +'<label style="'+lab+'">E-mail<input type="email" id="orc-email" style="'+inp+'"></label>'
+      +'<label style="'+lab+'">WhatsApp<input type="tel" id="orc-fone" placeholder="(DDD) número" style="'+inp+'"></label>'
+      +'<button type="button" id="orc-enviar" style="margin-top:18px;width:100%;padding:15px;border:none;border-radius:8px;background:#25d366;color:#fff;font-size:15px;font-family:inherit;cursor:pointer">Enviar pedido pelo WhatsApp</button>'
+      +'</div>';
+    res.innerHTML=html;
+    var bAce=document.getElementById('orc-aceitar');
+    if(bAce)bAce.addEventListener('click',function(){var f=document.getElementById('orc-dados');if(f)f.style.display='block';bAce.style.display='none';var n=document.getElementById('orc-nome');if(n)n.focus();});
+    var bEnv=document.getElementById('orc-enviar');
+    if(bEnv)bEnv.addEventListener('click',orcEnviar);
+  }
+  function orcEnviar(){
+    var O=window.__ORC; if(!O)return;
+    function v(id){var e=document.getElementById(id);return e?e.value.trim():'';}
+    var cli={nome:v('orc-nome'),email:v('orc-email'),fone:v('orc-fone')};
+    if(!cli.nome){var n=document.getElementById('orc-nome');if(n)n.focus();return;}
+    if(!O.numWa)return;
+    var d=O.d;
+    var L=['✅ ORÇAMENTO ACEITO — pedido de impressão','','Nome: '+cli.nome,'E-mail: '+cli.email,'WhatsApp: '+cli.fone,'','--- Especificações ---'];
+    if(d.titulo)L.push('Título: '+d.titulo);
+    L.push('Páginas: '+d.paginas,'Formato: '+d.formato,'Papel: '+d.papel,'Miolo: '+d.miolo,'Capa: '+d.capa,'Laminação: '+d.laminacao);
+    var ex=[]; if(d.isbn)ex.push('ISBN'); if(d.ficha)ex.push('Ficha catalográfica'); if(d.codigo)ex.push('Código de barras');
+    L.push('Extras: '+(ex.length?ex.join(', '):'nenhum'),'','Valor (1 exemplar): '+O.fmt(O.t));
+    window.open('https://wa.me/'+O.numWa+'?text='+encodeURIComponent(L.join('\n')),'_blank','noopener');
+  }
   function abrirServico(i){
     var it=(window.__SERVICOS||[])[i]; if(!it) return;
-    var st=it.capa?'background-image:url('+esc(it.capa)+');background-size:cover;background-position:center':'';
-    var desc=String(it.descricao||'').split('\n').filter(function(x){return x.trim();}).map(function(t){return '<p class="lead" style="margin-top:14px">'+esc(t)+'</p>';}).join('');
-    set('pb-svc',
-      '<div class="ph cover" style="'+st+';width:170px;height:255px;aspect-ratio:auto;margin-bottom:24px">'+(it.capa?'':'imagem')+'</div>'+
-      '<h1 style="font-size:40px">'+esc(it.titulo)+'</h1>'+desc);
+    if(it.tipo==='orcamento'){
+      var tit=(C.orcamento&&C.orcamento.titulo)||it.titulo;
+      set('pb-svc','<div class="kicker" style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:rgba(26,26,26,.5);margin-bottom:10px">'+esc((C.servicos&&C.servicos.kicker)||'')+'</div><h1 style="font-size:34px;margin-bottom:4px">'+esc(tit)+'</h1>'+orcHTML());
+      var b=document.getElementById('orc-calcular'); if(b) b.addEventListener('click',orcCalcular);
+    } else {
+      var st=it.capa?'background-image:url('+esc(it.capa)+');background-size:cover;background-position:center':'';
+      var desc=String(it.descricao||'').split('\n').filter(function(x){return x.trim();}).map(function(t){return '<p class="lead" style="margin-top:14px">'+esc(t)+'</p>';}).join('');
+      set('pb-svc',
+        '<div class="ph cover" style="'+st+';width:170px;height:255px;aspect-ratio:auto;margin-bottom:24px">'+(it.capa?'':'imagem')+'</div>'+
+        '<h1 style="font-size:40px">'+esc(it.titulo)+'</h1>'+desc);
+    }
     document.getElementById('svc').classList.add('open');
     var pb=document.getElementById('pb-svc'); if(pb) pb.scrollTop=0;
   }

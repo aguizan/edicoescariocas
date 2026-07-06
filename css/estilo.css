@@ -292,6 +292,8 @@ body{
     height: 22vh;
     min-height: 160px;
     z-index: 15;
+    /* Cinza bem transparente + leve desfoque: a faixa não pesa sobre a
+       cena nem atrapalha a leitura dos textos atrás dela. */
     background: rgba(120, 128, 136, 0.18);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
@@ -382,8 +384,9 @@ body{
        menos o topo (8vh) e uma folga inferior. */
     max-height: 84vh;
     overflow-y: auto;
-    /* Fundo claro próprio: garante que a sinopse seja sempre legível,
-       mesmo quando a ficha se sobrepõe à faixa do carrossel atrás dela. */
+    /* Fundo claro próprio: garante que a sinopse seja SEMPRE legível,
+       mesmo quando a ficha se sobrepõe à faixa do carrossel atrás dela.
+       O desfoque suaviza o que estiver atrás, sem esconder a cena. */
     background: rgba(248, 249, 250, 0.94);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
@@ -428,145 +431,6 @@ body{
 
 .painel-detalhe-livro a:hover {
     filter: brightness(1.15);
-}
-
-/* ==========================================================================
-   7b. PAINEL DE ORÇAMENTO DE IMPRESSÃO (calculadora)
-   ========================================================================== */
-.painel-orcamento h2 {
-    font-family: 'Georgia', serif;
-    font-style: normal;
-    font-size: 20px;
-    margin: 0 0 14px;
-    color: #2c3e50;
-}
-
-.orc-campo {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 10px;
-    font-style: normal;
-}
-
-.orc-campo > span {
-    font-size: 13px;
-    color: #2c3e50;
-}
-
-.orc-campo input[type="text"],
-.orc-campo input[type="number"],
-.orc-campo select {
-    font-family: sans-serif;
-    font-size: 14px;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background: #fff;
-    color: #2c3e50;
-}
-
-.orc-campo input:focus,
-.orc-campo select:focus {
-    outline: none;
-    border-color: #2c3e50;
-}
-
-.orc-extras-titulo {
-    font-size: 12px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: #6b7683;
-    font-style: normal;
-    margin: 14px 0 8px;
-}
-
-.orc-check {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    color: #2c3e50;
-    font-style: normal;
-    margin-bottom: 8px;
-    cursor: pointer;
-}
-
-.orc-check input {
-    width: 18px;
-    height: 18px;
-    flex: 0 0 auto;
-}
-
-.orc-btn-calcular {
-    font-family: sans-serif;
-    font-size: 14px;
-    color: #fff;
-    background: #2c3e50;
-    border: none;
-    padding: 11px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 8px;
-}
-
-.orc-btn-calcular:hover {
-    filter: brightness(1.15);
-}
-
-.orc-btn-aceitar {
-    font-family: sans-serif;
-    font-size: 14px;
-    color: #fff;
-    background: #25d366;
-    border: none;
-    padding: 11px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 12px;
-}
-
-.orc-btn-aceitar:hover {
-    filter: brightness(1.1);
-}
-
-.orc-total {
-    font-family: 'Georgia', serif;
-    font-style: normal;
-    text-align: center;
-    margin-top: 16px;
-}
-
-.orc-total .valor {
-    font-size: 30px;
-    color: #2c3e50;
-    display: block;
-}
-
-.orc-total .rotulo {
-    font-size: 12px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: #6b7683;
-}
-
-.orc-whatsapp {
-    display: block;
-    text-align: center;
-    font-style: normal;
-    font-size: 14px;
-    color: #fff;
-    background: #25d366;
-    padding: 10px 16px;
-    border-radius: 4px;
-    text-decoration: none;
-    margin-top: 12px;
-}
-
-.orc-whatsapp:hover {
-    filter: brightness(1.1);
 }
 
 /* ==========================================================================

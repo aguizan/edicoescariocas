@@ -117,11 +117,14 @@ A partir desse momento, o que parecia rotina começa a revelar suas camadas mais
     // Um objeto por serviço (vira carrossel + ficha, igual aos livros).
     //  capa      → imagem do card ("" = placeholder).
     //  descricao → texto da ficha (entre crases: pode pular linha à vontade).
+    //  tipo      → "orcamento" transforma a ficha no CALCULADOR de orçamento
+    //              (usa a tabela em "orcamento" abaixo). Sem tipo = ficha normal.
     itens: [
       {
-        titulo: "Serviço 1",
-        capa: "",
-        descricao: `Descrição completa do serviço 1: o que é, para quem, como funciona.`
+        titulo: "Impressão",
+        capa: "assets/servicos/imprimir.jpg",
+        tipo: "orcamento",
+        descricao: `Faça o orçamento da impressão do seu livro. Escolha o formato, o papel, o acabamento e os serviços extras — o valor de um exemplar aparece na hora, e você pode enviar o pedido direto pelo WhatsApp.`
       },
       {
         titulo: "Serviço 2",
@@ -134,6 +137,28 @@ A partir desse momento, o que parecia rotina começa a revelar suas camadas mais
         descricao: `Descrição completa do serviço 3.`
       }
     ]
+  },
+
+  /* ---------- ORÇAMENTO DE IMPRESSÃO (calculadora) ----------
+     Preço de UM exemplar. Cada escolha soma o valor indicado.
+     ►► Troque os números por R$ reais quando tiver a tabela. ◄◄
+     • precoPorPagina → multiplicado pela quantidade de páginas.
+     • Em cada grupo, você pode adicionar/remover opções livremente:
+       o formulário se ajusta sozinho. O valor é o preço daquela opção.
+     • isbn / fichaCatalografica / codigoBarras → valor cobrado quando
+       o cliente marca a caixinha. */
+  orcamento: {
+    titulo: "Orçamento de impressão",
+    moeda: "R$",
+    precoPorPagina: 1.00,
+    formato:   { "A5": 1, "16x23": 1, "13x18": 1 },
+    papel:     { "80 gr": 1, "90 gr": 1, "Pólen": 1 },
+    miolo:     { "Preto e branco": 1, "Colorido": 1 },
+    capa:      { "Brochura": 1, "Brochura com orelhas": 1, "Capa dura": 1 },
+    laminacao: { "Fosca": 1, "Brilho": 1 },
+    isbn: 1,
+    fichaCatalografica: 1,
+    codigoBarras: 1
   },
 
   /* ---------- 05 · CONTATO ---------- */
