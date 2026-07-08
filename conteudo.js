@@ -140,25 +140,36 @@ A partir desse momento, o que parecia rotina começa a revelar suas camadas mais
   },
 
   /* ---------- ORÇAMENTO DE IMPRESSÃO (calculadora) ----------
-     Preço de UM exemplar. Cada escolha soma o valor indicado.
-     ►► Troque os números por R$ reais quando tiver a tabela. ◄◄
-     • precoPorPagina → multiplicado pela quantidade de páginas.
-     • Em cada grupo, você pode adicionar/remover opções livremente:
-       o formulário se ajusta sozinho. O valor é o preço daquela opção.
-     • isbn / fichaCatalografica / codigoBarras → valor cobrado quando
-       o cliente marca a caixinha. */
+     MODELO: preço por página (P&B e colorida separadas) × tiragem,
+     mais acréscimo de capa e laminação por exemplar, mais extras
+     cobrados uma única vez. O formato serve só de registro no
+     orçamento (não altera o preço).
+
+     ►► COMO O CÁLCULO FUNCIONA ◄◄
+       custo por exemplar = (págs P&B × precoPaginaPB)
+                          + (págs coloridas × precoPaginaColorida)
+                          + capa escolhida + laminação escolhida
+       total = (custo por exemplar × tiragem) + extras marcados − desconto
+       valor por unidade = total ÷ tiragem
+
+     • Troque qualquer número abaixo pelo valor real quando quiser.
+     • Em capa/laminação pode adicionar/remover opções livremente
+       (o formulário se ajusta). O número é o acréscimo por exemplar.
+     • formato: lista só para registro (todos custam igual).
+     • isbn / fichaCatalografica / codigoBarras: valor cobrado UMA vez
+       quando o cliente marca a caixinha.  ►► CONFIRME estes 3 valores ◄◄ */
   orcamento: {
     titulo: "Orçamento de impressão",
     moeda: "R$",
-    precoPorPagina: 1.00,
-    formato:   { "A5": 1, "16x23": 1, "13x18": 1 },
-    papel:     { "80 gr": 1, "90 gr": 1, "Pólen": 1 },
-    miolo:     { "Preto e branco": 1, "Colorido": 1 },
-    capa:      { "Brochura": 1, "Brochura com orelhas": 1, "Capa dura": 1 },
-    laminacao: { "Fosca": 1, "Brilho": 1 },
-    isbn: 1,
-    fichaCatalografica: 1,
-    codigoBarras: 1
+    tiragemMinima: 10,
+    precoPaginaPB: 0.15,
+    precoPaginaColorida: 0.20,
+    formato:   ["A5", "16x23", "13x18"],
+    capa:      { "Brochura": 5.00, "Brochura com orelhas": 8.00, "Wire-o": 4.50 },
+    laminacao: { "Sem laminação": 0, "Fosca": 5.00, "Brilho": 5.00 },
+    isbn: 48,
+    fichaCatalografica: 65,
+    direitosAutorais: 80
   },
 
   /* ---------- 05 · CONTATO ---------- */

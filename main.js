@@ -476,33 +476,42 @@ console.log("Projeto iniciado.");
 
         function fmt(v) { return simbolo + ' ' + (v || 0).toFixed(2).replace('.', ','); }
 
-        function opcoes(obj) {
-            return Object.keys(obj || {}).map(function (k) {
-                return '<option value="' + k + '">' + k + '</option>';
-            }).join('');
+        function opcoes(lista) {
+            var out = [];
+            if (Array.isArray(lista)) {
+                lista.forEach(function (k) { out.push('<option value="' + k + '">' + k + '</option>'); });
+            } else {
+                Object.keys(lista || {}).forEach(function (k) { out.push('<option value="' + k + '">' + k + '</option>'); });
+            }
+            return out.join('');
         }
 
-        function campoSelect(id, rotulo, obj) {
+        function campoSelect(id, rotulo, lista) {
             return '<label class="orc-campo"><span>' + rotulo + '</span>'
-                + '<select id="' + id + '">' + opcoes(obj) + '</select></label>';
+                + '<select id="' + id + '">' + opcoes(lista) + '</select></label>';
         }
 
         function montar() {
             if (!corpo) return;
+            var tmin = cfg.tiragemMinima || 1;
             corpo.innerHTML =
                 '<label class="orc-campo"><span>Título do livro</span>'
                 + '<input type="text" id="orc-titulo" placeholder="Nome da obra"></label>'
-                + '<label class="orc-campo"><span>Quantidade de páginas</span>'
-                + '<input type="number" id="orc-paginas" min="1" step="1" value="100"></label>'
                 + campoSelect('orc-formato', 'Formato', cfg.formato)
-                + campoSelect('orc-papel', 'Papel', cfg.papel)
-                + campoSelect('orc-miolo', 'Miolo', cfg.miolo)
+                + '<label class="orc-campo"><span>Páginas preto e branco</span>'
+                + '<input type="number" id="orc-pgpb" min="0" step="1" value="0"></label>'
+                + '<label class="orc-campo"><span>Páginas coloridas</span>'
+                + '<input type="number" id="orc-pgcor" min="0" step="1" value="0"></label>'
+                + '<label class="orc-campo"><span>Tiragem (mínimo ' + tmin + ')</span>'
+                + '<input type="number" id="orc-tiragem" min="' + tmin + '" step="1" value="' + tmin + '"></label>'
                 + campoSelect('orc-capa', 'Capa', cfg.capa)
                 + campoSelect('orc-laminacao', 'Laminação', cfg.laminacao)
                 + '<div class="orc-extras-titulo">Serviços extras</div>'
                 + '<label class="orc-check"><input type="checkbox" id="orc-isbn"> ISBN</label>'
                 + '<label class="orc-check"><input type="checkbox" id="orc-ficha"> Ficha catalográfica</label>'
-                + '<label class="orc-check"><input type="checkbox" id="orc-codigo"> Código de barras</label>'
+                + '<label class="orc-check"><input type="checkbox" id="orc-direitos"> Direitos autorais</label>'
+                + '<label class="orc-campo"><span>Desconto (R$) — opcional</span>'
+                + '<input type="number" id="orc-desconto" min="0" step="0.01" value="0"></label>'
                 + '<button type="button" class="orc-btn-calcular" id="orc-calcular">Calcular orçamento</button>'
                 + '<div id="orc-resultado"></div>';
             const btn = corpo.querySelector('#orc-calcular');
@@ -511,36 +520,44 @@ console.log("Projeto iniciado.");
 
         function coletar() {
             function val(id) { var e = document.getElementById(id); return e ? e.value : ''; }
+            function num(id) { var e = document.getElementById(id); return e ? (parseFloat(e.value) || 0) : 0; }
             function marc(id) { var e = document.getElementById(id); return !!(e && e.checked); }
+            var tmin = cfg.tiragemMinima || 1;
+            var tir = parseInt(val('orc-tiragem'), 10) || 0;
+            if (tir < tmin) tir = tmin;
             return {
                 titulo: val('orc-titulo'),
-                paginas: parseInt(val('orc-paginas'), 10) || 0,
                 formato: val('orc-formato'),
-                papel: val('orc-papel'),
-                miolo: val('orc-miolo'),
+                pgpb: parseInt(val('orc-pgpb'), 10) || 0,
+                pgcor: parseInt(val('orc-pgcor'), 10) || 0,
+                tiragem: tir,
                 capa: val('orc-capa'),
                 laminacao: val('orc-laminacao'),
                 isbn: marc('orc-isbn'),
                 ficha: marc('orc-ficha'),
-                codigo: marc('orc-codigo')
+                direitos: marc('orc-direitos'),
+                desconto: num('orc-desconto')
             };
         }
 
-        function total(d) {
-            var t = 0;
-            t += (cfg.precoPorPagina || 0) * d.paginas;
-            t += (cfg.formato && cfg.formato[d.formato]) || 0;
-            t += (cfg.papel && cfg.papel[d.papel]) || 0;
-            t += (cfg.miolo && cfg.miolo[d.miolo]) || 0;
-            t += (cfg.capa && cfg.capa[d.capa]) || 0;
-            t += (cfg.laminacao && cfg.laminacao[d.laminacao]) || 0;
-            if (d.isbn) t += cfg.isbn || 0;
-            if (d.ficha) t += cfg.fichaCatalografica || 0;
-            if (d.codigo) t += cfg.codigoBarras || 0;
-            return t;
+        function calc(d) {
+            var exemplar = 0;
+            exemplar += (cfg.precoPaginaPB || 0) * d.pgpb;
+            exemplar += (cfg.precoPaginaColorida || 0) * d.pgcor;
+            exemplar += (cfg.capa && cfg.capa[d.capa]) || 0;
+            exemplar += (cfg.laminacao && cfg.laminacao[d.laminacao]) || 0;
+            var subtotal = exemplar * d.tiragem;
+            var extras = 0;
+            if (d.isbn) extras += cfg.isbn || 0;
+            if (d.ficha) extras += cfg.fichaCatalografica || 0;
+            if (d.direitos) extras += cfg.direitosAutorais || 0;
+            var tot = subtotal + extras - (d.desconto || 0);
+            if (tot < 0) tot = 0;
+            var unidade = d.tiragem > 0 ? tot / d.tiragem : tot;
+            return { exemplar: exemplar, subtotal: subtotal, extras: extras, total: tot, unidade: unidade };
         }
 
-        function mensagem(d, t, cliente) {
+        function mensagem(d, r, cliente) {
             var L = [];
             if (cliente) {
                 L.push('✅ ORÇAMENTO ACEITO — pedido de impressão');
@@ -554,40 +571,44 @@ console.log("Projeto iniciado.");
                 L.push('Olá! Gostaria de um orçamento de impressão:');
             }
             if (d.titulo) L.push('Título: ' + d.titulo);
-            L.push('Páginas: ' + d.paginas);
             L.push('Formato: ' + d.formato);
-            L.push('Papel: ' + d.papel);
-            L.push('Miolo: ' + d.miolo);
+            L.push('Páginas P&B: ' + d.pgpb);
+            L.push('Páginas coloridas: ' + d.pgcor);
+            L.push('Tiragem: ' + d.tiragem);
             L.push('Capa: ' + d.capa);
             L.push('Laminação: ' + d.laminacao);
             var extras = [];
             if (d.isbn) extras.push('ISBN');
             if (d.ficha) extras.push('Ficha catalográfica');
-            if (d.codigo) extras.push('Código de barras');
+            if (d.direitos) extras.push('Direitos autorais');
             L.push('Extras: ' + (extras.length ? extras.join(', ') : 'nenhum'));
+            if (d.desconto) L.push('Desconto: ' + fmt(d.desconto));
             L.push('');
-            L.push('Valor (1 exemplar): ' + fmt(t));
+            L.push('Valor por exemplar: ' + fmt(r.unidade));
+            L.push('Valor total (' + d.tiragem + ' un.): ' + fmt(r.total));
             return L.join('\n');
         }
 
-        var ultimoD = null, ultimoT = 0;
+        var ultimoD = null, ultimoR = null;
 
         function enviarPedido() {
             function val(id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; }
             var cliente = { nome: val('orc-nome'), email: val('orc-email'), fone: val('orc-fone') };
             if (!cliente.nome) { var n = document.getElementById('orc-nome'); if (n) n.focus(); return; }
             if (!numWa) return;
-            var url = 'https://wa.me/' + numWa + '?text=' + encodeURIComponent(mensagem(ultimoD, ultimoT, cliente));
-            window.open(url, '_blank', 'noopener');
+            var url = 'https://wa.me/' + numWa + '?text=' + encodeURIComponent(mensagem(ultimoD, ultimoR, cliente));
+            var a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }
 
         function calcular() {
             ultimoD = coletar();
-            ultimoT = total(ultimoD);
+            ultimoR = calc(ultimoD);
             var res = document.getElementById('orc-resultado');
             if (!res) return;
-            var html = '<div class="orc-total"><span class="valor">' + fmt(ultimoT) + '</span>'
-                + '<span class="rotulo">estimativa para 1 exemplar</span></div>';
+            var html = '<div class="orc-total"><span class="valor">' + fmt(ultimoR.unidade) + '</span>'
+                + '<span class="rotulo">por exemplar</span></div>'
+                + '<div class="orc-total-linha">Total (' + ultimoD.tiragem + ' un.): <strong>' + fmt(ultimoR.total) + '</strong></div>';
             html += '<button type="button" class="orc-btn-aceitar" id="orc-aceitar">Aceitar orçamento</button>';
             html += '<div id="orc-dados" style="display:none">'
                 + '<div class="orc-extras-titulo">Seus dados</div>'

@@ -552,6 +552,14 @@ body{
     color: #6b7683;
 }
 
+.orc-total-linha {
+    text-align: center;
+    font-size: 15px;
+    color: #2c3e50;
+    font-style: normal;
+    margin-top: 6px;
+}
+
 .orc-whatsapp {
     display: block;
     text-align: center;

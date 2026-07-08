@@ -417,33 +417,44 @@
   }
   function orcHTML(){
     var o=(C.orcamento)||{};
-    function ops(obj){return Object.keys(obj||{}).map(function(k){return '<option value="'+esc(k)+'">'+esc(k)+'</option>';}).join('');}
+    function opsLista(l){ if(Array.isArray(l)) return l.map(function(k){return '<option value="'+esc(k)+'">'+esc(k)+'</option>';}).join(''); return Object.keys(l||{}).map(function(k){return '<option value="'+esc(k)+'">'+esc(k)+'</option>';}).join(''); }
     var inp='width:100%;font-size:16px;padding:11px 12px;border:1px solid rgba(26,26,26,.28);border-radius:8px;background:#fff;color:#1a1a1a;font-family:inherit;margin-top:6px';
     var lab='display:block;margin-top:16px;font-size:14px;color:rgba(26,26,26,.7)';
-    function sel(id,rot,obj){return '<label style="'+lab+'">'+rot+'<select id="'+id+'" style="'+inp+'">'+ops(obj)+'</select></label>';}
+    function sel(id,rot,l){return '<label style="'+lab+'">'+rot+'<select id="'+id+'" style="'+inp+'">'+opsLista(l)+'</select></label>';}
     function chk(id,rot){return '<label style="display:flex;align-items:center;gap:10px;margin-top:12px;font-size:16px;color:#1a1a1a"><input type="checkbox" id="'+id+'" style="width:20px;height:20px;flex:0 0 auto"> '+rot+'</label>';}
+    var tmin=o.tiragemMinima||1;
     return '<label style="'+lab+'">Título do livro<input type="text" id="orc-titulo" placeholder="Nome da obra" style="'+inp+'"></label>'
-      +'<label style="'+lab+'">Quantidade de páginas<input type="number" id="orc-paginas" min="1" step="1" value="100" style="'+inp+'"></label>'
-      +sel('orc-formato','Formato',o.formato)+sel('orc-papel','Papel',o.papel)+sel('orc-miolo','Miolo',o.miolo)+sel('orc-capa','Capa',o.capa)+sel('orc-laminacao','Laminação',o.laminacao)
+      +sel('orc-formato','Formato',o.formato)
+      +'<label style="'+lab+'">Páginas preto e branco<input type="number" id="orc-pgpb" min="0" step="1" value="0" style="'+inp+'"></label>'
+      +'<label style="'+lab+'">Páginas coloridas<input type="number" id="orc-pgcor" min="0" step="1" value="0" style="'+inp+'"></label>'
+      +'<label style="'+lab+'">Tiragem (mínimo '+tmin+')<input type="number" id="orc-tiragem" min="'+tmin+'" step="1" value="'+tmin+'" style="'+inp+'"></label>'
+      +sel('orc-capa','Capa',o.capa)+sel('orc-laminacao','Laminação',o.laminacao)
       +'<div style="margin-top:22px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,26,26,.5)">Serviços extras</div>'
-      +chk('orc-isbn','ISBN')+chk('orc-ficha','Ficha catalográfica')+chk('orc-codigo','Código de barras')
+      +chk('orc-isbn','ISBN')+chk('orc-ficha','Ficha catalográfica')+chk('orc-direitos','Direitos autorais')
+      +'<label style="'+lab+'">Desconto (R$) — opcional<input type="number" id="orc-desconto" min="0" step="0.01" value="0" style="'+inp+'"></label>'
       +'<button type="button" id="orc-calcular" style="margin-top:22px;width:100%;padding:15px;border:none;border-radius:8px;background:#1a1a1a;color:#f4f4f2;font-size:15px;font-family:inherit;cursor:pointer">Calcular orçamento</button>'
       +'<div id="orc-resultado"></div>';
   }
   function orcCalcular(){
     var o=(C.orcamento)||{}, sym=o.moeda||'R$', numWa=(C.contato&&C.contato.whatsapp)||'';
     function val(id){var e=document.getElementById(id);return e?e.value:'';}
+    function num(id){var e=document.getElementById(id);return e?(parseFloat(e.value)||0):0;}
     function mk(id){var e=document.getElementById(id);return !!(e&&e.checked);}
     function fmt(v){return sym+' '+(v||0).toFixed(2).replace('.',',');}
-    var d={titulo:val('orc-titulo'),paginas:parseInt(val('orc-paginas'),10)||0,formato:val('orc-formato'),papel:val('orc-papel'),miolo:val('orc-miolo'),capa:val('orc-capa'),laminacao:val('orc-laminacao'),isbn:mk('orc-isbn'),ficha:mk('orc-ficha'),codigo:mk('orc-codigo')};
-    var t=(o.precoPorPagina||0)*d.paginas;
-    t+=(o.formato&&o.formato[d.formato])||0; t+=(o.papel&&o.papel[d.papel])||0; t+=(o.miolo&&o.miolo[d.miolo])||0; t+=(o.capa&&o.capa[d.capa])||0; t+=(o.laminacao&&o.laminacao[d.laminacao])||0;
-    if(d.isbn)t+=o.isbn||0; if(d.ficha)t+=o.fichaCatalografica||0; if(d.codigo)t+=o.codigoBarras||0;
-    window.__ORC={d:d,t:t,numWa:numWa,fmt:fmt};
+    var tmin=o.tiragemMinima||1, tir=parseInt(val('orc-tiragem'),10)||0; if(tir<tmin)tir=tmin;
+    var d={titulo:val('orc-titulo'),formato:val('orc-formato'),pgpb:parseInt(val('orc-pgpb'),10)||0,pgcor:parseInt(val('orc-pgcor'),10)||0,tiragem:tir,capa:val('orc-capa'),laminacao:val('orc-laminacao'),isbn:mk('orc-isbn'),ficha:mk('orc-ficha'),direitos:mk('orc-direitos'),desconto:num('orc-desconto')};
+    var exemplar=(o.precoPaginaPB||0)*d.pgpb+(o.precoPaginaColorida||0)*d.pgcor;
+    exemplar+=(o.capa&&o.capa[d.capa])||0; exemplar+=(o.laminacao&&o.laminacao[d.laminacao])||0;
+    var subtotal=exemplar*d.tiragem, extras=0;
+    if(d.isbn)extras+=o.isbn||0; if(d.ficha)extras+=o.fichaCatalografica||0; if(d.direitos)extras+=o.direitosAutorais||0;
+    var tot=subtotal+extras-(d.desconto||0); if(tot<0)tot=0;
+    var unidade=d.tiragem>0?tot/d.tiragem:tot;
+    window.__ORC={d:d,total:tot,unidade:unidade,numWa:numWa,fmt:fmt};
     var res=document.getElementById('orc-resultado'); if(!res)return;
     var inp='width:100%;font-size:16px;padding:11px 12px;border:1px solid rgba(26,26,26,.28);border-radius:8px;background:#fff;color:#1a1a1a;font-family:inherit;margin-top:6px';
     var lab='display:block;margin-top:16px;font-size:14px;color:rgba(26,26,26,.7)';
-    var html='<div style="text-align:center;margin-top:22px"><span style="display:block;font-family:\'Instrument Serif\',serif;font-size:40px;color:#1a1a1a">'+fmt(t)+'</span><span style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,26,26,.5)">estimativa para 1 exemplar</span></div>';
+    var html='<div style="text-align:center;margin-top:22px"><span style="display:block;font-family:\'Instrument Serif\',serif;font-size:40px;color:#1a1a1a">'+fmt(unidade)+'</span><span style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,26,26,.5)">por exemplar</span></div>';
+    html+='<div style="text-align:center;margin-top:6px;font-size:15px;color:#1a1a1a">Total ('+d.tiragem+' un.): <strong>'+fmt(tot)+'</strong></div>';
     html+='<button type="button" id="orc-aceitar" style="margin-top:16px;width:100%;padding:15px;border:none;border-radius:8px;background:#25d366;color:#fff;font-size:15px;font-family:inherit;cursor:pointer">Aceitar orçamento</button>';
     html+='<div id="orc-dados" style="display:none">'
       +'<div style="margin-top:22px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,26,26,.5)">Seus dados</div>'
@@ -467,10 +478,14 @@
     var d=O.d;
     var L=['✅ ORÇAMENTO ACEITO — pedido de impressão','','Nome: '+cli.nome,'E-mail: '+cli.email,'WhatsApp: '+cli.fone,'','--- Especificações ---'];
     if(d.titulo)L.push('Título: '+d.titulo);
-    L.push('Páginas: '+d.paginas,'Formato: '+d.formato,'Papel: '+d.papel,'Miolo: '+d.miolo,'Capa: '+d.capa,'Laminação: '+d.laminacao);
-    var ex=[]; if(d.isbn)ex.push('ISBN'); if(d.ficha)ex.push('Ficha catalográfica'); if(d.codigo)ex.push('Código de barras');
-    L.push('Extras: '+(ex.length?ex.join(', '):'nenhum'),'','Valor (1 exemplar): '+O.fmt(O.t));
-    window.open('https://wa.me/'+O.numWa+'?text='+encodeURIComponent(L.join('\n')),'_blank','noopener');
+    L.push('Formato: '+d.formato,'Páginas P&B: '+d.pgpb,'Páginas coloridas: '+d.pgcor,'Tiragem: '+d.tiragem,'Capa: '+d.capa,'Laminação: '+d.laminacao);
+    var ex=[]; if(d.isbn)ex.push('ISBN'); if(d.ficha)ex.push('Ficha catalográfica'); if(d.direitos)ex.push('Direitos autorais');
+    L.push('Extras: '+(ex.length?ex.join(', '):'nenhum'));
+    if(d.desconto)L.push('Desconto: '+O.fmt(d.desconto));
+    L.push('','Valor por exemplar: '+O.fmt(O.unidade),'Valor total ('+d.tiragem+' un.): '+O.fmt(O.total));
+    var url='https://wa.me/'+O.numWa+'?text='+encodeURIComponent(L.join('\n'));
+    var a=document.createElement('a'); a.href=url; a.target='_blank'; a.rel='noopener';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
   }
   function abrirServico(i){
     var it=(window.__SERVICOS||[])[i]; if(!it) return;
