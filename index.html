@@ -87,13 +87,8 @@
         <a id="detalhe-livro-link" href="#" target="_blank" rel="noopener">Saiba mais</a>
     </div>
 
-    <!-- FAIXA DE SERVIÇOS (CARROSSEL DE CARDS) -->
-    <div id="faixa-servicos" class="faixa-carrossel" role="dialog" aria-label="Serviços">
-        <button type="button" class="fechar-painel fechar-faixa" aria-label="Fechar">&times;</button>
-        <div id="trilho-servicos" class="trilho-carrossel">
-            <!-- Os itens são inseridos dinamicamente via JS (CONTEUDO.servicos.itens) -->
-        </div>
-    </div>
+    <!-- MARCADORES DE SERVIÇOS (círculos + seta apontando para prédios da silhueta) -->
+    <div id="marcadores-servicos" class="marcadores-servicos"></div>
 
     <!-- PAINEL DE DETALHES DO SERVIÇO (abre ao clicar num card do carrossel) -->
     <div id="detalhe-servico" class="painel-info painel-detalhe-livro" role="dialog" aria-label="Detalhes do serviço">
@@ -174,9 +169,19 @@
     })();
 </script>
 
-<!-- Fonte única de conteúdo — deve vir ANTES do main.js -->
-<script src="conteudo.js"></script>
-<script src="main.js"></script>
+<!-- Fonte única de conteúdo — carregada de conteudo.json (editável pelo Editor de Conteúdo local) -->
+<script>
+fetch('conteudo.json').then(function(r){return r.json();}).then(function(dados){
+    window.CONTEUDO = dados;
+}).catch(function(e){
+    console.error('[conteudo] Falha ao carregar conteudo.json', e);
+    window.CONTEUDO = window.CONTEUDO || {};
+}).finally(function(){
+    var s = document.createElement('script');
+    s.src = 'main.js';
+    document.body.appendChild(s);
+});
+</script>
 
 </body>
 </html>

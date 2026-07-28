@@ -281,6 +281,67 @@ body{
 }
 
 /* ==========================================================================
+   6b. MARCADORES DE SERVIÇOS (círculos coloridos + seta apontando p/ prédio)
+   ========================================================================== */
+.marcadores-servicos {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 15;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.marcadores-servicos.ativo {
+    opacity: 1;
+    visibility: visible;
+}
+
+.marcador-servico {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.marcador-servico-ponto {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+}
+
+.marcador-servico-rotulo {
+    display: block;
+    font-family: sans-serif;
+    font-style: normal;
+    font-size: 17px;
+    font-weight: 600;
+    color: #1a1a1a;
+    background: rgba(255, 255, 255, 0.92);
+    border: 2px solid #999;
+    border-radius: 20px;
+    padding: 6px 16px;
+    white-space: nowrap;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+}
+
+.marcador-servico:hover .marcador-servico-rotulo {
+    filter: brightness(0.97);
+}
+
+/* ==========================================================================
    6. FAIXA DE PUBLICAÇÕES (CARROSSEL DE CAPAS)
    ========================================================================== */
 .faixa-carrossel {
@@ -289,12 +350,12 @@ body{
     right: 0;
     bottom: 0;
     width: 100%;
-    height: 22vh;
-    min-height: 160px;
+    height: 34vh;
+    min-height: 250px;
     z-index: 15;
-    background: rgba(120, 128, 136, 0.18);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     padding: 16px 24px;
     box-sizing: border-box;
 
@@ -314,6 +375,7 @@ body{
 
 .trilho-carrossel {
     display: flex;
+    align-items: flex-end;
     gap: 16px;
     height: 100%;
     overflow-x: auto;
@@ -328,23 +390,27 @@ body{
     height: 6px;
 }
 
+
 .trilho-carrossel::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.4);
     border-radius: 3px;
 }
 
 .item-carrossel {
+    position: relative;
     flex: 0 0 auto;
     scroll-snap-align: start;
-    height: 100%;
+    height: 77%;
     aspect-ratio: 2 / 3; /* proporção comum de capa de livro */
     border-radius: 4px;
     overflow: hidden;
     cursor: pointer;
-    background: #ccc; /* fallback enquanto a imagem real não existe */
+    background: transparent;
     border: 2px solid transparent;
     transition: border-color 0.2s ease, transform 0.2s ease;
 }
+
+
 
 .item-carrossel:hover {
     border-color: #fff;
@@ -354,10 +420,41 @@ body{
 .item-carrossel img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
 }
 
+.item-carrossel-legenda {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 8px;
+    text-align: center;
+    font-size: 12px;
+    font-style: normal;
+    color: #2c3e50;
+    padding: 0 6px;
+    pointer-events: none;
+}
+
+.item-carrossel-selo {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #c0392b;
+    color: #fff;
+    font-style: normal;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 3px;
+    pointer-events: none;
+}
+
+/* Servi\u00e7os usa posicionamento livre ao longo da curva da ciclovia (ver
+   posicionarNaCurva em main.js) em vez da tira horizontal padr\u00e3o. */
 .faixa-carrossel .fechar-faixa {
     top: 12px;
     right: 12px;

@@ -30,6 +30,38 @@ console.log("Projeto iniciado.");
 
     const imagem = document.getElementById('poste-interativo');
 
+    // Curva da ciclovia (mesmo artboard 2634x1482), usada para posicionar os
+    // cards de Serviços "pousados" sobre o traçado, como faixas de um cilindro.
+    // Path extraído de uploads/caminho.svg (aresta inferior dos cards); a
+    // aresta superior é este mesmo traçado deslocado 288 unidades para cima.
+    const CURVA_CICLOVIA_D = 'M-0,1325.933L1385.02,1335.174C1778.286,1325.403 2089.311,1242.874 2213.293,1167.605C2288.63,1121.868 2443.734,1011.707 2115.088,1009.251';
+    const CURVA_ALTURA_CARD = 288; // unidades do artboard entre aresta inferior e superior
+    const CURVA_FRACAO_MAX = 0.78; // evita a ponta final, onde o traçado se fecha sobre si mesmo
+    let _curvaPathEl = null;
+    function obterCurvaPath() {
+        if (_curvaPathEl) return _curvaPathEl;
+        const NS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(NS, 'svg');
+        svg.setAttribute('style', 'position:absolute;width:0;height:0;overflow:hidden;');
+        const path = document.createElementNS(NS, 'path');
+        path.setAttribute('d', CURVA_CICLOVIA_D);
+        svg.appendChild(path);
+        document.body.appendChild(svg);
+        _curvaPathEl = path;
+        return path;
+    }
+    function amostrarCurva(n) {
+        const path = obterCurvaPath();
+        const total = path.getTotalLength();
+        const pontos = [];
+        for (let i = 0; i < n; i++) {
+            const frac = n > 1 ? (i / (n - 1)) * CURVA_FRACAO_MAX : CURVA_FRACAO_MAX / 2;
+            const p = path.getPointAtLength(frac * total);
+            pontos.push({ x: p.x, y: p.y });
+        }
+        return pontos;
+    }
+
     if (!imagem) {
         console.error('[hotspots] Elemento #poste-interativo não encontrado.');
         return;
@@ -275,7 +307,8 @@ console.log("Projeto iniciado.");
 
             config.dados.forEach(function (item) {
                 const card = document.createElement('div');
-                card.className = 'item-carrossel';
+                card.className = 'item-carrossel' + (item.alto ? ' item-carrossel--alto' : '');
+                if (item.aspecto) card.style.aspectRatio = String(item.aspecto);
                 card.setAttribute('role', 'button');
                 card.setAttribute('tabindex', '0');
                 card.setAttribute('aria-label', item.titulo);
@@ -285,6 +318,20 @@ console.log("Projeto iniciado.");
                     img.src = item.capa;
                     img.alt = item.titulo;
                     card.appendChild(img);
+                }
+
+                if (item.selo) {
+                    const selo = document.createElement('span');
+                    selo.className = 'item-carrossel-selo';
+                    selo.textContent = item.selo;
+                    card.appendChild(selo);
+                }
+
+                if (config.legenda) {
+                    const legenda = document.createElement('span');
+                    legenda.className = 'item-carrossel-legenda';
+                    legenda.textContent = item.titulo;
+                    card.appendChild(legenda);
                 }
 
                 card.addEventListener('click', function (evento) {
@@ -299,6 +346,39 @@ console.log("Projeto iniciado.");
                 });
 
                 trilho.appendChild(card);
+            });
+
+            if (config.curva) posicionarNaCurva();
+        }
+
+        function posicionarNaCurva() {
+            if (!trilho) return;
+            const cards = trilho.querySelectorAll('.item-carrossel');
+            if (!cards.length) return;
+            const area = calcularAreaRealDaImagem();
+            const pontos = amostrarCurva(cards.length);
+            const alturaCardPx = (CURVA_ALTURA_CARD / ARTBOARD_HEIGHT) * area.alturaReal * 1.35;
+            const larguraCardPx = alturaCardPx * (2 / 3); // mantém a proporção 2:3 das capas
+            let centroXAnterior = null;
+            const espacamentoMin = larguraCardPx + 10;
+            cards.forEach(function (card, i) {
+                const p = pontos[i];
+                let centroX = area.offsetX + (p.x / ARTBOARD_WIDTH) * area.larguraReal;
+                const minX = area.offsetX + larguraCardPx / 2;
+                const maxX = area.offsetX + area.larguraReal - larguraCardPx / 2;
+                if (centroX < minX) centroX = minX;
+                if (centroX > maxX) centroX = maxX;
+                if (centroXAnterior !== null && centroX - centroXAnterior < espacamentoMin) {
+                    centroX = centroXAnterior + espacamentoMin;
+                }
+                centroXAnterior = centroX;
+                const baseY = area.offsetY + (p.y / ARTBOARD_HEIGHT) * area.alturaReal;
+                card.style.position = 'absolute';
+                card.style.left = (centroX - larguraCardPx / 2) + 'px';
+                card.style.top = (baseY - alturaCardPx) + 'px';
+                card.style.width = larguraCardPx + 'px';
+                card.style.height = alturaCardPx + 'px';
+                card.style.aspectRatio = '';
             });
         }
 
@@ -327,6 +407,14 @@ console.log("Projeto iniciado.");
         }
 
         montar();
+
+        if (config.curva) {
+            let resizeTimeoutCurva;
+            window.addEventListener('resize', function () {
+                clearTimeout(resizeTimeoutCurva);
+                resizeTimeoutCurva = setTimeout(posicionarNaCurva, 100);
+            });
+        }
 
         return { abrir: abrir, fechar: fechar };
     }
@@ -441,6 +529,7 @@ console.log("Projeto iniciado.");
             texto: l.sinopse || '',
             formato: formato,
             preco: preco,
+            selo: l.selo || '',
             emBreve: emBreve,
             whatsappLink: (!emBreve && numWa) ? 'https://wa.me/' + numWa + '?text=' + encodeURIComponent(msg) : ''
         };
@@ -498,10 +587,9 @@ console.log("Projeto iniciado.");
                 '<label class="orc-campo"><span>Título do livro</span>'
                 + '<input type="text" id="orc-titulo" placeholder="Nome da obra"></label>'
                 + campoSelect('orc-formato', 'Formato', cfg.formato)
-                + '<label class="orc-campo"><span>Páginas preto e branco</span>'
-                + '<input type="number" id="orc-pgpb" min="0" step="1" value="0"></label>'
-                + '<label class="orc-campo"><span>Páginas coloridas</span>'
-                + '<input type="number" id="orc-pgcor" min="0" step="1" value="0"></label>'
+                + campoSelect('orc-papel', 'Papel', cfg.precoPagina)
+                + '<label class="orc-campo"><span>Total de páginas</span>'
+                + '<input type="number" id="orc-paginas" min="0" step="1" value="0"></label>'
                 + '<label class="orc-campo"><span>Tiragem (mínimo ' + tmin + ')</span>'
                 + '<input type="number" id="orc-tiragem" min="' + tmin + '" step="1" value="' + tmin + '"></label>'
                 + campoSelect('orc-capa', 'Capa', cfg.capa)
@@ -528,8 +616,8 @@ console.log("Projeto iniciado.");
             return {
                 titulo: val('orc-titulo'),
                 formato: val('orc-formato'),
-                pgpb: parseInt(val('orc-pgpb'), 10) || 0,
-                pgcor: parseInt(val('orc-pgcor'), 10) || 0,
+                papel: val('orc-papel'),
+                paginas: parseInt(val('orc-paginas'), 10) || 0,
                 tiragem: tir,
                 capa: val('orc-capa'),
                 laminacao: val('orc-laminacao'),
@@ -542,8 +630,7 @@ console.log("Projeto iniciado.");
 
         function calc(d) {
             var exemplar = 0;
-            exemplar += (cfg.precoPaginaPB || 0) * d.pgpb;
-            exemplar += (cfg.precoPaginaColorida || 0) * d.pgcor;
+            exemplar += ((cfg.precoPagina && cfg.precoPagina[d.papel]) || 0) * d.paginas;
             exemplar += (cfg.capa && cfg.capa[d.capa]) || 0;
             exemplar += (cfg.laminacao && cfg.laminacao[d.laminacao]) || 0;
             var subtotal = exemplar * d.tiragem;
@@ -572,8 +659,8 @@ console.log("Projeto iniciado.");
             }
             if (d.titulo) L.push('Título: ' + d.titulo);
             L.push('Formato: ' + d.formato);
-            L.push('Páginas P&B: ' + d.pgpb);
-            L.push('Páginas coloridas: ' + d.pgcor);
+            L.push('Papel: ' + d.papel);
+            L.push('Total de páginas: ' + d.paginas);
             L.push('Tiragem: ' + d.tiragem);
             L.push('Capa: ' + d.capa);
             L.push('Laminação: ' + d.laminacao);
@@ -658,21 +745,157 @@ console.log("Projeto iniciado.");
         texto: 'detalhe-servico-descricao',
     });
 
-    const carrosselServicos = criarCarrossel({
-        botaoId: 'btn-servicos',
-        faixaId: 'faixa-servicos',
-        trilhoId: 'trilho-servicos',
-        dados: DADOS_SERVICOS,
-        aoClicarItem: function (item) {
-            painelServico.fechar();
-            orcamentoImpressao.fechar();
-            if (item.tipo === 'orcamento') {
-                orcamentoImpressao.abrir();
-            } else {
-                painelServico.abrir(item);
+    function abrirServico(item) {
+        painelServico.fechar();
+        orcamentoImpressao.fechar();
+        if (item.tipo === 'orcamento') {
+            orcamentoImpressao.abrir();
+        } else {
+            painelServico.abrir(item);
+        }
+    }
+
+    // ---- Marcadores de Serviços: círculos coloridos + rótulo + seta,
+    // cada um apontando para um prédio da silhueta, como se indicasse
+    // onde aquele serviço "mora" na cidade. Posições em % do artboard
+    // (2634x1482), convertidas para a área real da imagem (mesmo cálculo
+    // usado pelos hotspots das placas). ----
+
+    const PONTOS_SERVICOS = [
+        { cor: '#c0392b', cx: 1968.6, cy: 1339.3, tx: 1684.5, ty: 1202.7 }, // Impressão
+        { cor: '#1f6f5c', cx: 1225.2, cy: 1268.1, tx: 1322.1, ty: 1171.2 }, // Análise Crítica
+        { cor: '#8e44ad', cx: 1240.3, cy: 807.6,  tx: 1055.5, ty: 1034.5 }, // Conversão / EPUB
+        { cor: '#d68910', cx: 1707.9, cy: 949,    tx: 1544.8, ty: 1192.5 }  // Clube de Leitura
+    ];
+
+    const containerMarcadores = document.getElementById('marcadores-servicos');
+
+    function montarMarcadores() {
+        if (!containerMarcadores) return;
+        containerMarcadores.innerHTML = '';
+        const area = calcularAreaRealDaImagem();
+        function paraTela(x, y) {
+            return {
+                x: area.offsetX + (x / ARTBOARD_WIDTH) * area.larguraReal,
+                y: area.offsetY + (y / ARTBOARD_HEIGHT) * area.alturaReal
+            };
+        }
+        const NS = 'http://www.w3.org/2000/svg';
+        const svgLinhas = document.createElementNS(NS, 'svg');
+        svgLinhas.setAttribute('style', 'position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible;pointer-events:none;');
+        containerMarcadores.appendChild(svgLinhas);
+        const entradas = [];
+
+        DADOS_SERVICOS.forEach(function (item, i) {
+            const p = PONTOS_SERVICOS[i % PONTOS_SERVICOS.length];
+            const c = paraTela(p.tx, p.ty);
+            const t = paraTela(p.cx, p.cy);
+
+            const linha = document.createElementNS(NS, 'line');
+            linha.setAttribute('x1', t.x); linha.setAttribute('y1', t.y);
+            linha.setAttribute('x2', c.x); linha.setAttribute('y2', c.y);
+            linha.setAttribute('stroke', p.cor);
+            linha.setAttribute('stroke-width', '3');
+            linha.setAttribute('opacity', '0.85');
+            svgLinhas.appendChild(linha);
+
+            const ponto = document.createElement('span');
+            ponto.className = 'marcador-servico-ponto';
+            ponto.style.left = c.x + 'px';
+            ponto.style.top = c.y + 'px';
+            ponto.style.background = p.cor;
+            ponto.style.boxShadow = '0 0 0 4px ' + p.cor + '33';
+            containerMarcadores.appendChild(ponto);
+
+            const marcador = document.createElement('button');
+            marcador.type = 'button';
+            marcador.className = 'marcador-servico';
+            marcador.style.left = t.x + 'px';
+            marcador.style.top = t.y + 'px';
+            marcador.setAttribute('aria-label', item.titulo);
+
+            const rotulo = document.createElement('span');
+            rotulo.className = 'marcador-servico-rotulo';
+            rotulo.textContent = item.titulo;
+            rotulo.style.borderColor = p.cor;
+
+            marcador.appendChild(rotulo);
+            marcador.addEventListener('click', function (e) {
+                e.stopPropagation();
+                abrirServico(item);
+            });
+            containerMarcadores.appendChild(marcador);
+            entradas.push({ marcador: marcador, linha: linha });
+        });
+
+        // Evita sobreposição entre rótulos cujas pontas de seta ficaram
+        // próximas: empilha verticalmente, mantendo cada seta ligada ao
+        // seu respectivo círculo na cidade.
+        const comRect = entradas.map(function (e) {
+            return { marcador: e.marcador, linha: e.linha, rect: e.marcador.getBoundingClientRect() };
+        });
+        comRect.sort(function (a, b) { return a.rect.top - b.rect.top; });
+        const gap = 10;
+        let ultimoFundo = -Infinity;
+        comRect.forEach(function (e) {
+            let topo = e.rect.top;
+            if (topo < ultimoFundo + gap) {
+                const delta = (ultimoFundo + gap) - topo;
+                const topoAtual = parseFloat(e.marcador.style.top) || 0;
+                e.marcador.style.top = (topoAtual + delta) + 'px';
+                e.linha.setAttribute('y1', parseFloat(e.linha.getAttribute('y1')) + delta);
+                topo += delta;
             }
-        },
+            ultimoFundo = topo + e.rect.height;
+        });
+    }
+
+    const botaoServicos = document.getElementById('btn-servicos');
+    function toggleMarcadores() {
+        if (!containerMarcadores) return;
+        const abrindo = !containerMarcadores.classList.contains('ativo');
+        fecharTodosPaineis();
+        if (abrindo) {
+            montarMarcadores();
+            containerMarcadores.classList.add('ativo');
+            if (botaoServicos) botaoServicos.setAttribute('aria-expanded', 'true');
+        } else {
+            containerMarcadores.classList.remove('ativo');
+            if (botaoServicos) botaoServicos.setAttribute('aria-expanded', 'false');
+        }
+    }
+    if (botaoServicos) {
+        botaoServicos.addEventListener('click', function (e) {
+            e.stopPropagation();
+            toggleMarcadores();
+        });
+    }
+    let resizeTimeoutServicos;
+    window.addEventListener('resize', function () {
+        clearTimeout(resizeTimeoutServicos);
+        resizeTimeoutServicos = setTimeout(function () {
+            if (containerMarcadores && containerMarcadores.classList.contains('ativo')) montarMarcadores();
+        }, 100);
     });
+    const carrosselServicos = { fechar: function () { if (containerMarcadores) containerMarcadores.classList.remove('ativo'); } };
+
+    // ---- MODO CALIBRAÇÃO (temporário): adicione ?calibrar na URL para
+    // clicar na ilustração e ver as coordenadas exatas (sistema 2634x1482)
+    // no console e num aviso na tela. Use para me passar os pontos certos. ----
+    if (window.location.search.indexOf('calibrar') !== -1) {
+        const aviso = document.createElement('div');
+        aviso.style.cssText = 'position:fixed;top:8px;left:8px;z-index:999;background:#000;color:#0f0;font:12px monospace;padding:8px 12px;border-radius:4px;max-width:90vw;white-space:pre-wrap;';
+        aviso.textContent = 'MODO CALIBRAÇÃO: clique na imagem para ver as coordenadas (px, py).';
+        document.body.appendChild(aviso);
+        document.addEventListener('click', function (e) {
+            const area = calcularAreaRealDaImagem();
+            const px = ((e.clientX - area.offsetX) / area.larguraReal) * ARTBOARD_WIDTH;
+            const py = ((e.clientY - area.offsetY) / area.alturaReal) * ARTBOARD_HEIGHT;
+            const linha = 'px: ' + Math.round(px) + ',  py: ' + Math.round(py);
+            aviso.textContent = 'MODO CALIBRAÇÃO — último clique:\n' + linha + '\n\n(clique em outro ponto para atualizar)';
+            console.log(linha);
+        }, true);
+    }
 
     // ---- Texto da logo / poesia (clique) ----
 
