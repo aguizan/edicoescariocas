@@ -57,17 +57,17 @@
       {
         "titulo": "Análise Crítica",
         "capa": "",
-        "descricao": "Em breve."
+        "descricao": "Descrição completa do serviço 2."
       },
       {
         "titulo": "Conversão / Ebook",
         "capa": "",
-        "descricao": "Em breve."
+        "descricao": "Descrição completa do serviço 3."
       },
       {
         "titulo": "Clube de Leitura",
         "capa": "",
-        "descricao": "Vamos criar um clube de leitura. Faça contato."
+        "descricao": "Descrição completa do Clube de Leitura."
       }
     ]
   },
@@ -76,9 +76,9 @@
     "moeda": "R$",
     "tiragemMinima": 10,
     "precoPagina": {
-      "Papel 75g": 0.1548,
-      "Papel 90g": 0.25,
-      "Papel Off White": 0.16
+      "Papel 75g": 1.361,
+      "Papel 90g": 1.3701,
+      "Papel Off White": 1.367
     },
     "formato": [
       "A5",
@@ -97,9 +97,7 @@
     },
     "isbn": 51,
     "fichaCatalografica": 82,
-    "direitosAutorais": 130,
-    "precoPaginaPB": 0.1548,
-    "precoPaginaColorida": 0.45
+    "direitosAutorais": 0
   },
   "contato": {
     "kicker": "05 · Contato",

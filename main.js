@@ -652,6 +652,7 @@ console.log("Projeto iniciado.");
                 L.push('Nome: ' + (cliente.nome || ''));
                 L.push('E-mail: ' + (cliente.email || ''));
                 L.push('WhatsApp: ' + (cliente.fone || ''));
+                L.push('CEP para entrega: ' + (cliente.cep || ''));
                 L.push('');
                 L.push('--- Especificações ---');
             } else {
@@ -680,7 +681,7 @@ console.log("Projeto iniciado.");
 
         function enviarPedido() {
             function val(id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; }
-            var cliente = { nome: val('orc-nome'), email: val('orc-email'), fone: val('orc-fone') };
+            var cliente = { nome: val('orc-nome'), email: val('orc-email'), fone: val('orc-fone'), cep: val('orc-cep') };
             if (!cliente.nome) { var n = document.getElementById('orc-nome'); if (n) n.focus(); return; }
             if (!numWa) return;
             var url = 'https://wa.me/' + numWa + '?text=' + encodeURIComponent(mensagem(ultimoD, ultimoR, cliente));
@@ -702,6 +703,7 @@ console.log("Projeto iniciado.");
                 + '<label class="orc-campo"><span>Nome</span><input type="text" id="orc-nome"></label>'
                 + '<label class="orc-campo"><span>E-mail</span><input type="email" id="orc-email"></label>'
                 + '<label class="orc-campo"><span>WhatsApp</span><input type="tel" id="orc-fone" placeholder="(DDD) número"></label>'
+                + '<label class="orc-campo"><span>CEP para entrega</span><input type="text" id="orc-cep" placeholder="00000-000"></label>'
                 + '<button type="button" class="orc-whatsapp" id="orc-enviar" style="border:none;cursor:pointer;width:100%">Enviar pedido pelo WhatsApp</button>'
                 + '</div>';
             res.innerHTML = html;
