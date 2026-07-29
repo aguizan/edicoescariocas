@@ -472,7 +472,6 @@ function __montarConteudoMobile(){
       +'<label style="'+lab+'">Nome<input type="text" id="orc-nome" style="'+inp+'"></label>'
       +'<label style="'+lab+'">E-mail<input type="email" id="orc-email" style="'+inp+'"></label>'
       +'<label style="'+lab+'">WhatsApp<input type="tel" id="orc-fone" placeholder="(DDD) número" style="'+inp+'"></label>'
-      +'<label style="'+lab+'">CEP para entrega<input type="text" id="orc-cep" placeholder="00000-000" style="'+inp+'"></label>'
       +'<button type="button" id="orc-enviar" style="margin-top:18px;width:100%;padding:15px;border:none;border-radius:8px;background:#25d366;color:#fff;font-size:15px;font-family:inherit;cursor:pointer">Enviar pedido pelo WhatsApp</button>'
       +'</div>';
     res.innerHTML=html;
@@ -484,11 +483,11 @@ function __montarConteudoMobile(){
   function orcEnviar(){
     var O=window.__ORC; if(!O)return;
     function v(id){var e=document.getElementById(id);return e?e.value.trim():'';}
-    var cli={nome:v('orc-nome'),email:v('orc-email'),fone:v('orc-fone'),cep:v('orc-cep')};
+    var cli={nome:v('orc-nome'),email:v('orc-email'),fone:v('orc-fone')};
     if(!cli.nome){var n=document.getElementById('orc-nome');if(n)n.focus();return;}
     if(!O.numWa)return;
     var d=O.d;
-    var L=['✅ ORÇAMENTO ACEITO — pedido de impressão','','Nome: '+cli.nome,'E-mail: '+cli.email,'WhatsApp: '+cli.fone,'CEP para entrega: '+cli.cep,'','--- Especificações ---'];
+    var L=['✅ ORÇAMENTO ACEITO — pedido de impressão','','Nome: '+cli.nome,'E-mail: '+cli.email,'WhatsApp: '+cli.fone,'','--- Especificações ---'];
     if(d.titulo)L.push('Título: '+d.titulo);
     L.push('Formato: '+d.formato,'Papel: '+d.papel,'Total de páginas: '+d.paginas,'Tiragem: '+d.tiragem,'Capa: '+d.capa,'Laminação: '+d.laminacao);
     var ex=[]; if(d.isbn)ex.push('ISBN'); if(d.ficha)ex.push('Ficha catalográfica'); if(d.direitos)ex.push('Direitos autorais');
