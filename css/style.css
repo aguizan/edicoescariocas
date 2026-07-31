@@ -136,20 +136,11 @@ body{
 
 #texto-logo p { margin-bottom: 24px; }
 
-/* Hover só em dispositivos com ponteiro de precisão (mouse/trackpad).
-   Em touch, a abertura do texto-logo é feita por clique via JS. */
-@media (hover: hover) and (pointer: fine) {
-    #gatilho-logo:hover ~ #texto-logo, #texto-logo:hover {
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-    }
-
-    /* No desktop o fechamento é por "tirar o mouse de cima" — o botão
-       de fechar não é necessário e ficaria redundante na tela. */
-    #fechar-texto-logo {
-        display: none;
-    }
+/* Hover só em dispositivos com ponteiro de precisão (mouse/trackpad) — controlado
+   via JS (mouseenter/mouseleave), não por :hover puro, para respeitar outros
+   painéis já abertos (não sobrepor Missão/Quem Somos/Contato/carrosséis). */
+#fechar-texto-logo.oculto-desktop {
+    display: none;
 }
 
 /* Em touch, a classe .ativo (adicionada via JS) controla a visibilidade,
@@ -192,7 +183,7 @@ body{
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 6; /* acima do poste (5), abaixo da logo (10) */
+    z-index: 17; /* acima da faixa de carrossel (15) — hotspots continuam clicáveis mesmo com o carrossel aberto */
     pointer-events: none; /* o container não bloqueia cliques fora das placas */
 }
 
@@ -255,6 +246,14 @@ body{
 
 .painel-info p {
     margin: 0;
+}
+
+#texto-missao,
+#texto-quem {
+    top: 3vh;
+    max-height: 94vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .painel-info .fechar-painel {

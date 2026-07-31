@@ -409,8 +409,17 @@ function __montarConteudoMobile(){
       }).join('');
     }
     if(num){
-      var msgAvaliar='Olá! Quero deixar uma avaliação do livro "'+l.titulo+'":\n\nNota (1 a 5): \nMeu nome: \nComentário: ';
-      avalHtml+='<a href="https://wa.me/'+num+'?text='+encodeURIComponent(msgAvaliar)+'" target="_blank" rel="noopener" style="display:inline-block;font-size:13px;color:#1a1a1a;text-decoration:underline;margin-top:8px">Avaliar este livro</a>';
+      var idForm='avaliar-'+i;
+      avalHtml+='<div style="margin-top:10px"><button type="button" id="'+idForm+'-abrir" style="font-size:14px;color:#1a1a1a;background:none;border:none;text-decoration:underline;cursor:pointer;padding:0">Avaliar este livro</button>'
+        +'<div id="'+idForm+'" style="display:none;margin-top:10px;padding:14px;background:rgba(0,0,0,.04);border-radius:8px">'
+        +'<div style="font-size:14px;color:#1a1a1a;margin-bottom:8px">Sua nota:</div>'
+        +'<div id="'+idForm+'-estrelas" style="font-size:28px;margin-bottom:12px" data-nota="5">'
+        +[1,2,3,4,5].map(function(n){return '<span class="estrela" data-n="'+n+'" style="cursor:pointer;color:#e0a800">★</span>';}).join('')
+        +'</div>'
+        +'<input type="text" id="'+idForm+'-nome" placeholder="Seu nome" style="width:100%;box-sizing:border-box;font-size:16px;padding:10px;border:1px solid rgba(26,26,26,.28);border-radius:8px;margin-bottom:8px">'
+        +'<textarea id="'+idForm+'-texto" placeholder="Seu comentário" rows="3" style="width:100%;box-sizing:border-box;font-size:16px;padding:10px;border:1px solid rgba(26,26,26,.28);border-radius:8px;margin-bottom:8px;resize:vertical"></textarea>'
+        +'<button type="button" id="'+idForm+'-enviar" style="width:100%;padding:12px;border:none;border-radius:8px;background:#25d366;color:#fff;font-size:15px;cursor:pointer">Enviar avaliação</button>'
+        +'</div></div>';
     }
     var wa='';
     if(emBreve){
@@ -425,6 +434,33 @@ function __montarConteudoMobile(){
       fmtLinha+sin+avalHtml+wa);
     document.getElementById('book').classList.add('open');
     var pb=document.getElementById('pb-book'); if(pb) pb.scrollTop=0;
+    if(num){
+      var idForm2='avaliar-'+i;
+      var btnAbrir=document.getElementById(idForm2+'-abrir'), caixa=document.getElementById(idForm2);
+      if(btnAbrir&&caixa) btnAbrir.onclick=function(){caixa.style.display='block';btnAbrir.style.display='none';};
+      var estrelasEl=document.getElementById(idForm2+'-estrelas');
+      if(estrelasEl){
+        var pintar=function(nota){
+          estrelasEl.querySelectorAll('.estrela').forEach(function(sp){
+            sp.textContent=(parseInt(sp.getAttribute('data-n'),10)<=nota)?'★':'☆';
+          });
+          estrelasEl.setAttribute('data-nota',nota);
+        };
+        estrelasEl.querySelectorAll('.estrela').forEach(function(sp){
+          sp.onclick=function(){pintar(parseInt(sp.getAttribute('data-n'),10));};
+        });
+      }
+      var btnEnviar=document.getElementById(idForm2+'-enviar');
+      if(btnEnviar) btnEnviar.onclick=function(){
+        var nota=estrelasEl?estrelasEl.getAttribute('data-nota'):'5';
+        var nome=(document.getElementById(idForm2+'-nome')||{}).value||'';
+        var texto=(document.getElementById(idForm2+'-texto')||{}).value||'';
+        var msg2='Olá! Quero deixar uma avaliação do livro "'+l.titulo+'":\n\nNota: '+nota+' de 5\nNome: '+nome+'\nComentário: '+texto;
+        var url='https://wa.me/'+num+'?text='+encodeURIComponent(msg2);
+        var a=document.createElement('a'); a.href=url; a.target='_blank'; a.rel='noopener';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      };
+    }
   }
   var bb=document.querySelector('.back-book');
   if(bb) bb.addEventListener('click',function(){ document.getElementById('book').classList.remove('open'); });

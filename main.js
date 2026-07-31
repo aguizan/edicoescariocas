@@ -88,7 +88,7 @@ console.log("Projeto iniciado.");
             const m = document.getElementById('missao');
             if (m) {
                 m.innerHTML = blocos(C.missao.texto || C.missao.paragrafos).map(function (t) {
-                    return '<p style="margin-bottom:20px;text-indent:2em;">' + txt(t).replace(/\n/g, '<br>') + '</p>';
+                    return '<p style="margin-bottom:12px;text-indent:2em;">' + txt(t).replace(/\n/g, '<br>') + '</p>';
                 }).join('');
             }
         }
@@ -98,10 +98,10 @@ console.log("Projeto iniciado.");
             const q = document.getElementById('quem-somos');
             if (q) {
                 const ps = blocos(C.quem.texto || C.quem.paragrafos).map(function (t) {
-                    return '<p style="margin-bottom:20px;text-indent:2em;">' + txt(t).replace(/\n/g, '<br>') + '</p>';
+                    return '<p style="margin-bottom:3px;text-indent:1.5em;overflow-wrap:break-word;word-break:break-word;">' + txt(t).replace(/\n/g, '<br>') + '</p>';
                 }).join('');
                 const fecho = C.quem.fecho
-                    ? '<p style="text-align:center;font-style:italic;margin-top:30px;font-weight:bold;color:#222;font-size:1.1rem;border-top:1px solid #eee;padding-top:15px;">' + txt(C.quem.fecho) + '</p>'
+                    ? '<p style="text-align:center;font-style:italic;margin-top:6px;font-weight:600;color:#222;font-size:0.92rem;border-top:1px solid #eee;padding-top:5px;">' + txt(C.quem.fecho) + '</p>'
                     : '';
                 q.innerHTML = ps + fecho;
             }
@@ -257,7 +257,36 @@ console.log("Projeto iniciado.");
             const botao = document.getElementById(botaoId);
             if (botao) botao.setAttribute('aria-expanded', 'false');
         });
+        // Fecha também carrosséis, fichas de detalhe e o orçamento — nunca deixar
+        // duas seções abertas ao mesmo tempo (definidos mais abaixo neste arquivo,
+        // mas acessíveis aqui por closure já que só rodam depois de tudo iniciado).
+        if (typeof carrosselPublicacoes !== 'undefined') carrosselPublicacoes.fechar();
+        if (typeof carrosselServicos !== 'undefined') carrosselServicos.fechar();
+        if (typeof painelLivro !== 'undefined') painelLivro.fechar();
+        if (typeof painelServico !== 'undefined') painelServico.fechar();
+        if (typeof orcamentoImpressao !== 'undefined') orcamentoImpressao.fechar();
+        if (typeof fecharTextoLogo !== 'undefined') fecharTextoLogo();
     }
+
+    function ajustarFonteParaCaber(painelEl, minPx, maxPx) {
+        if (!painelEl) return;
+        const conteudo = painelEl.querySelector('section');
+        if (!conteudo) return;
+        let px = maxPx;
+        conteudo.style.fontSize = px + 'px';
+        let tentativas = 0;
+        while (painelEl.scrollHeight > painelEl.clientHeight && px > minPx && tentativas < 40) {
+            px -= 0.5;
+            conteudo.style.fontSize = px + 'px';
+            tentativas++;
+        }
+    }
+
+    function ajustarPaineisDeTexto() {
+        ajustarFonteParaCaber(document.getElementById('texto-missao'), 12, 16.9);
+        ajustarFonteParaCaber(document.getElementById('texto-quem'), 12, 16.9);
+    }
+    window.addEventListener('resize', ajustarPaineisDeTexto);
 
     function alternarPainel(botaoId, painelId) {
         const painel = document.getElementById(painelId);
@@ -269,7 +298,11 @@ console.log("Projeto iniciado.");
 
         if (!estavaAtivo) {
             painel.classList.add('ativo');
+            painel.scrollTop = 0;
             botao.setAttribute('aria-expanded', 'true');
+            if (painelId === 'texto-missao' || painelId === 'texto-quem') {
+                ajustarFonteParaCaber(painel, 12, 16.9);
+            }
         }
     }
 
@@ -435,9 +468,9 @@ console.log("Projeto iniciado.");
             if (!painel) return;
 
             if (elCapa) {
-                elCapa.src = item.capa || '';
+                if (item.capa) { elCapa.src = item.capa; elCapa.style.display = 'block'; }
+                else { elCapa.removeAttribute('src'); elCapa.style.display = 'none'; }
                 elCapa.alt = item.titulo;
-                elCapa.style.display = item.capa ? 'block' : 'none';
             }
             if (elTitulo) elTitulo.textContent = item.titulo;
 
@@ -484,10 +517,53 @@ console.log("Projeto iniciado.");
                     }).join('');
                 }
                 if (item.avaliarLink) {
-                    html += '<a href="' + item.avaliarLink + '" target="_blank" rel="noopener" style="display:inline-block;font-style:normal;font-size:13px;color:#2c3e50;text-decoration:underline;margin-top:8px;">Avaliar este livro</a>';
+                    const idForm = painelId + '-form-avaliar';
+                    html += '<div style="margin-top:10px;">'
+                        + '<button type="button" id="' + idForm + '-abrir" style="font-style:normal;font-size:13px;color:#2c3e50;background:none;border:none;text-decoration:underline;cursor:pointer;padding:0;">Avaliar este livro</button>'
+                        + '<div id="' + idForm + '" style="display:none;margin-top:10px;padding:12px;background:#f7f7f5;border-radius:6px;">'
+                        + '<div style="font-style:normal;font-size:13px;color:#2c3e50;margin-bottom:6px;">Sua nota:</div>'
+                        + '<div id="' + idForm + '-estrelas" style="font-size:22px;margin-bottom:10px;" data-nota="5">'
+                        + [1,2,3,4,5].map(function(n){return '<span class="estrela" data-n="' + n + '" style="cursor:pointer;color:#e0a800;">★</span>';}).join('')
+                        + '</div>'
+                        + '<input type="text" id="' + idForm + '-nome" placeholder="Seu nome" style="width:100%;box-sizing:border-box;font-family:sans-serif;font-size:14px;padding:8px;border:1px solid #ccc;border-radius:4px;margin-bottom:8px;">'
+                        + '<textarea id="' + idForm + '-texto" placeholder="Seu comentário" rows="3" style="width:100%;box-sizing:border-box;font-family:sans-serif;font-size:14px;padding:8px;border:1px solid #ccc;border-radius:4px;margin-bottom:8px;resize:vertical;"></textarea>'
+                        + '<button type="button" id="' + idForm + '-enviar" style="font-family:sans-serif;font-size:13px;color:#fff;background:#25d366;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;">Enviar avaliação</button>'
+                        + '</div></div>';
                 }
                 elAval.innerHTML = html;
                 elAval.style.display = html ? 'block' : 'none';
+
+                if (item.avaliarLink) {
+                    const idForm = painelId + '-form-avaliar';
+                    const btnAbrir = document.getElementById(idForm + '-abrir');
+                    const caixa = document.getElementById(idForm);
+                    const estrelasEl = document.getElementById(idForm + '-estrelas');
+                    if (btnAbrir && caixa) {
+                        btnAbrir.onclick = function () { caixa.style.display = 'block'; btnAbrir.style.display = 'none'; };
+                    }
+                    if (estrelasEl) {
+                        var pintarEstrelas = function (nota) {
+                            var spans = estrelasEl.querySelectorAll('.estrela');
+                            spans.forEach(function (sp) {
+                                sp.textContent = (parseInt(sp.getAttribute('data-n'), 10) <= nota) ? '★' : '☆';
+                            });
+                            estrelasEl.setAttribute('data-nota', nota);
+                        };
+                        estrelasEl.querySelectorAll('.estrela').forEach(function (sp) {
+                            sp.onclick = function () { pintarEstrelas(parseInt(sp.getAttribute('data-n'), 10)); };
+                        });
+                    }
+                    const btnEnviar = document.getElementById(idForm + '-enviar');
+                    if (btnEnviar) {
+                        btnEnviar.onclick = function () {
+                            const nota = estrelasEl ? estrelasEl.getAttribute('data-nota') : '5';
+                            const nome = (document.getElementById(idForm + '-nome') || {}).value || '';
+                            const texto = (document.getElementById(idForm + '-texto') || {}).value || '';
+                            const msg = 'Olá! Quero deixar uma avaliação do livro "' + item.titulo + '":\n\nNota: ' + nota + ' de 5\nNome: ' + nome + '\nComentário: ' + texto;
+                            window.open('https://wa.me/' + item.numWaAvaliar + '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+                        };
+                    }
+                }
             }
 
             // Botão de compra: só "Comprar pelo WhatsApp" (ou "Em breve").
@@ -550,7 +626,6 @@ console.log("Projeto iniciado.");
             : 'Meu e-mail para receber o e-book: ';
         const avaliacoes = l.avaliacoes || [];
         const media = avaliacoes.length ? (avaliacoes.reduce(function (s, a) { return s + (parseFloat(a.nota) || 0); }, 0) / avaliacoes.length) : 0;
-        const msgAvaliar = 'Olá! Quero deixar uma avaliação do livro "' + (l.titulo || '') + '":\n\nNota (1 a 5): \nMeu nome: \nComentário: ';
         return {
             titulo: l.titulo || '',
             autor: l.autor || '',
@@ -563,7 +638,8 @@ console.log("Projeto iniciado.");
             whatsappLink: (!emBreve && numWa) ? 'https://wa.me/' + numWa + '?text=' + encodeURIComponent(msg) : '',
             avaliacoes: avaliacoes,
             media: media,
-            avaliarLink: numWa ? 'https://wa.me/' + numWa + '?text=' + encodeURIComponent(msgAvaliar) : ''
+            avaliarLink: numWa ? true : '',
+            numWaAvaliar: numWa
         };
     });
 
@@ -580,7 +656,7 @@ console.log("Projeto iniciado.");
         faixaId: 'faixa-publicacoes',
         trilhoId: 'trilho-carrossel',
         dados: DADOS_LIVROS,
-        aoClicarItem: painelLivro.abrir,
+        aoClicarItem: function (item) { carrosselPublicacoes.fechar(); painelLivro.abrir(item); },
     });
 
     // ---- Orçamento de impressão (calculadora) — dados de conteudo.js ----
@@ -780,6 +856,7 @@ console.log("Projeto iniciado.");
     });
 
     function abrirServico(item) {
+        carrosselServicos.fechar();
         painelServico.fechar();
         orcamentoImpressao.fechar();
         if (item.tipo === 'orcamento') {
@@ -945,15 +1022,47 @@ console.log("Projeto iniciado.");
         if (textoLogo) textoLogo.classList.remove('ativo');
     }
 
+    function algumOutroPainelAberto() {
+        const painelAtivo = Object.values(MAPA_PAINEIS).some(function (id) {
+            const el = document.getElementById(id);
+            return el && el.classList.contains('ativo');
+        });
+        const faixaAtiva = document.querySelector('.faixa-carrossel.ativo');
+        const detalheAtivo = document.querySelector('.painel-detalhe-livro.ativo');
+        const marcadoresAtivo = containerMarcadores && containerMarcadores.classList.contains('ativo');
+        return !!(painelAtivo || faixaAtiva || detalheAtivo || marcadoresAtivo);
+    }
+
     if (gatilhoLogo) {
         gatilhoLogo.addEventListener('click', function (evento) {
             evento.stopPropagation();
             if (textoLogo && textoLogo.classList.contains('ativo')) {
                 fecharTextoLogo();
             } else {
+                fecharTodosPaineis();
+                carrosselPublicacoes.fechar();
+                carrosselServicos.fechar();
+                painelLivro.fechar();
+                painelServico.fechar();
+                orcamentoImpressao.fechar();
                 abrirTextoLogo();
             }
         });
+
+        const consultaHover = window.matchMedia('(hover: hover) and (pointer: fine)');
+        if (consultaHover.matches) {
+            gatilhoLogo.addEventListener('mouseenter', function () {
+                if (!algumOutroPainelAberto()) abrirTextoLogo();
+            });
+            gatilhoLogo.addEventListener('mouseleave', function () {
+                if (!(textoLogo && textoLogo.matches(':hover'))) fecharTextoLogo();
+            });
+            if (textoLogo) {
+                textoLogo.addEventListener('mouseleave', function () {
+                    if (!(gatilhoLogo && gatilhoLogo.matches(':hover'))) fecharTextoLogo();
+                });
+            }
+        }
     }
 
     if (botaoFecharTextoLogo) {
