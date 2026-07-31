@@ -464,6 +464,32 @@ console.log("Projeto iniciado.");
 
             if (elTexto) elTexto.textContent = item.texto;
 
+            // Avaliações (estrelas + depoimentos) — só existe para livros.
+            const elAval = document.getElementById(painelId + '-avaliacoes');
+            if (elAval) {
+                let html = '';
+                if (item.avaliacoes && item.avaliacoes.length) {
+                    const cheias = Math.round(item.media);
+                    let estrelas = '';
+                    for (let i = 1; i <= 5; i++) estrelas += (i <= cheias ? '★' : '☆');
+                    html += '<div style="font-style:normal;font-size:15px;color:#2c3e50;margin:4px 0 10px;">'
+                        + '<span style="color:#e0a800;letter-spacing:2px;">' + estrelas + '</span> '
+                        + item.media.toFixed(1) + ' de ' + item.avaliacoes.length + ' avaliação' + (item.avaliacoes.length > 1 ? 'ões' : '') + '</div>';
+                    html += item.avaliacoes.map(function (a) {
+                        const n = Math.round(parseFloat(a.nota) || 0);
+                        let est = ''; for (let i = 1; i <= 5; i++) est += (i <= n ? '★' : '☆');
+                        return '<div style="font-style:normal;font-size:13px;color:#444;border-top:1px solid #eee;padding:8px 0;">'
+                            + '<span style="color:#e0a800;">' + est + '</span> <strong>' + (a.nome || 'Leitor') + '</strong>'
+                            + (a.texto ? '<div style="margin-top:2px;color:#555;">' + a.texto + '</div>' : '') + '</div>';
+                    }).join('');
+                }
+                if (item.avaliarLink) {
+                    html += '<a href="' + item.avaliarLink + '" target="_blank" rel="noopener" style="display:inline-block;font-style:normal;font-size:13px;color:#2c3e50;text-decoration:underline;margin-top:8px;">Avaliar este livro</a>';
+                }
+                elAval.innerHTML = html;
+                elAval.style.display = html ? 'block' : 'none';
+            }
+
             // Botão de compra: só "Comprar pelo WhatsApp" (ou "Em breve").
             if (elVendas) {
                 let html = '';
@@ -522,6 +548,9 @@ console.log("Projeto iniciado.");
         msg += ehFisico
             ? 'Endereço completo para envio (rua, número, complemento, bairro, cidade/UF e CEP): '
             : 'Meu e-mail para receber o e-book: ';
+        const avaliacoes = l.avaliacoes || [];
+        const media = avaliacoes.length ? (avaliacoes.reduce(function (s, a) { return s + (parseFloat(a.nota) || 0); }, 0) / avaliacoes.length) : 0;
+        const msgAvaliar = 'Olá! Quero deixar uma avaliação do livro "' + (l.titulo || '') + '":\n\nNota (1 a 5): \nMeu nome: \nComentário: ';
         return {
             titulo: l.titulo || '',
             autor: l.autor || '',
@@ -531,7 +560,10 @@ console.log("Projeto iniciado.");
             preco: preco,
             selo: l.selo || '',
             emBreve: emBreve,
-            whatsappLink: (!emBreve && numWa) ? 'https://wa.me/' + numWa + '?text=' + encodeURIComponent(msg) : ''
+            whatsappLink: (!emBreve && numWa) ? 'https://wa.me/' + numWa + '?text=' + encodeURIComponent(msg) : '',
+            avaliacoes: avaliacoes,
+            media: media,
+            avaliarLink: numWa ? 'https://wa.me/' + numWa + '?text=' + encodeURIComponent(msgAvaliar) : ''
         };
     });
 
@@ -652,6 +684,7 @@ console.log("Projeto iniciado.");
                 L.push('Nome: ' + (cliente.nome || ''));
                 L.push('E-mail: ' + (cliente.email || ''));
                 L.push('WhatsApp: ' + (cliente.fone || ''));
+                L.push('CEP para entrega: ' + (cliente.cep || ''));
                 L.push('');
                 L.push('--- Especificações ---');
             } else {
@@ -680,7 +713,7 @@ console.log("Projeto iniciado.");
 
         function enviarPedido() {
             function val(id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; }
-            var cliente = { nome: val('orc-nome'), email: val('orc-email'), fone: val('orc-fone') };
+            var cliente = { nome: val('orc-nome'), email: val('orc-email'), fone: val('orc-fone'), cep: val('orc-cep') };
             if (!cliente.nome) { var n = document.getElementById('orc-nome'); if (n) n.focus(); return; }
             if (!numWa) return;
             var url = 'https://wa.me/' + numWa + '?text=' + encodeURIComponent(mensagem(ultimoD, ultimoR, cliente));
@@ -702,6 +735,7 @@ console.log("Projeto iniciado.");
                 + '<label class="orc-campo"><span>Nome</span><input type="text" id="orc-nome"></label>'
                 + '<label class="orc-campo"><span>E-mail</span><input type="email" id="orc-email"></label>'
                 + '<label class="orc-campo"><span>WhatsApp</span><input type="tel" id="orc-fone" placeholder="(DDD) número"></label>'
+                + '<label class="orc-campo"><span>CEP para entrega</span><input type="text" id="orc-cep" placeholder="00000-000"></label>'
                 + '<button type="button" class="orc-whatsapp" id="orc-enviar" style="border:none;cursor:pointer;width:100%">Enviar pedido pelo WhatsApp</button>'
                 + '</div>';
             res.innerHTML = html;

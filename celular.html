@@ -393,6 +393,25 @@ function __montarConteudoMobile(){
     // Mensagem do WhatsApp: pede quantidade; se físico, também endereço
     var msg='Olá! Tenho interesse no livro "'+l.titulo+'"'+(fmt?' ('+fmt+(l.preco?' — '+l.preco:'')+')':'')+'.\n\nQuantidade: \n';
     msg+= ehFisico ? 'Endereço completo para envio (rua, número, complemento, bairro, cidade/UF e CEP): ' : 'Meu e-mail para receber o e-book: ';
+    var avaliacoes=l.avaliacoes||[];
+    var media=avaliacoes.length?(avaliacoes.reduce(function(s,a){return s+(parseFloat(a.nota)||0);},0)/avaliacoes.length):0;
+    var avalHtml='';
+    if(avaliacoes.length){
+      var cheias=Math.round(media), est='';
+      for(var i=1;i<=5;i++) est+=(i<=cheias?'★':'☆');
+      avalHtml+='<div style="font-size:15px;color:#1a1a1a;margin-top:18px">'+
+        '<span style="color:#e0a800;letter-spacing:2px">'+est+'</span> '+media.toFixed(1)+' de '+avaliacoes.length+' avaliação'+(avaliacoes.length>1?'ões':'')+'</div>';
+      avalHtml+=avaliacoes.map(function(a){
+        var n=Math.round(parseFloat(a.nota)||0), e2=''; for(var j=1;j<=5;j++) e2+=(j<=n?'★':'☆');
+        return '<div style="font-size:14px;color:#444;border-top:1px solid rgba(26,26,26,.1);padding:8px 0">'+
+          '<span style="color:#e0a800">'+e2+'</span> <strong>'+esc(a.nome||'Leitor')+'</strong>'+
+          (a.texto?'<div style="margin-top:2px;color:#555">'+esc(a.texto)+'</div>':'')+'</div>';
+      }).join('');
+    }
+    if(num){
+      var msgAvaliar='Olá! Quero deixar uma avaliação do livro "'+l.titulo+'":\n\nNota (1 a 5): \nMeu nome: \nComentário: ';
+      avalHtml+='<a href="https://wa.me/'+num+'?text='+encodeURIComponent(msgAvaliar)+'" target="_blank" rel="noopener" style="display:inline-block;font-size:13px;color:#1a1a1a;text-decoration:underline;margin-top:8px">Avaliar este livro</a>';
+    }
     var wa='';
     if(emBreve){
       wa='<div class="btn block" style="margin-top:26px;background:rgba(26,26,26,.06);color:rgba(26,26,26,.55);border-color:rgba(26,26,26,.15);cursor:default">Em breve</div>';
@@ -403,7 +422,7 @@ function __montarConteudoMobile(){
       '<div class="ph cover" style="'+st+';width:170px;height:255px;aspect-ratio:auto;margin-bottom:24px">'+(l.capa?'':'capa')+'</div>'+
       '<h1 style="font-size:40px">'+esc(l.titulo)+'</h1>'+
       (l.autor?'<p class="lead" style="color:rgba(26,26,26,.55);margin-top:-6px">'+esc(l.autor)+'</p>':'')+
-      fmtLinha+sin+wa);
+      fmtLinha+sin+avalHtml+wa);
     document.getElementById('book').classList.add('open');
     var pb=document.getElementById('pb-book'); if(pb) pb.scrollTop=0;
   }
@@ -472,6 +491,7 @@ function __montarConteudoMobile(){
       +'<label style="'+lab+'">Nome<input type="text" id="orc-nome" style="'+inp+'"></label>'
       +'<label style="'+lab+'">E-mail<input type="email" id="orc-email" style="'+inp+'"></label>'
       +'<label style="'+lab+'">WhatsApp<input type="tel" id="orc-fone" placeholder="(DDD) número" style="'+inp+'"></label>'
+      +'<label style="'+lab+'">CEP para entrega<input type="text" id="orc-cep" placeholder="00000-000" style="'+inp+'"></label>'
       +'<button type="button" id="orc-enviar" style="margin-top:18px;width:100%;padding:15px;border:none;border-radius:8px;background:#25d366;color:#fff;font-size:15px;font-family:inherit;cursor:pointer">Enviar pedido pelo WhatsApp</button>'
       +'</div>';
     res.innerHTML=html;
@@ -483,11 +503,11 @@ function __montarConteudoMobile(){
   function orcEnviar(){
     var O=window.__ORC; if(!O)return;
     function v(id){var e=document.getElementById(id);return e?e.value.trim():'';}
-    var cli={nome:v('orc-nome'),email:v('orc-email'),fone:v('orc-fone')};
+    var cli={nome:v('orc-nome'),email:v('orc-email'),fone:v('orc-fone'),cep:v('orc-cep')};
     if(!cli.nome){var n=document.getElementById('orc-nome');if(n)n.focus();return;}
     if(!O.numWa)return;
     var d=O.d;
-    var L=['✅ ORÇAMENTO ACEITO — pedido de impressão','','Nome: '+cli.nome,'E-mail: '+cli.email,'WhatsApp: '+cli.fone,'','--- Especificações ---'];
+    var L=['✅ ORÇAMENTO ACEITO — pedido de impressão','','Nome: '+cli.nome,'E-mail: '+cli.email,'WhatsApp: '+cli.fone,'CEP para entrega: '+cli.cep,'','--- Especificações ---'];
     if(d.titulo)L.push('Título: '+d.titulo);
     L.push('Formato: '+d.formato,'Papel: '+d.papel,'Total de páginas: '+d.paginas,'Tiragem: '+d.tiragem,'Capa: '+d.capa,'Laminação: '+d.laminacao);
     var ex=[]; if(d.isbn)ex.push('ISBN'); if(d.ficha)ex.push('Ficha catalográfica'); if(d.direitos)ex.push('Direitos autorais');
