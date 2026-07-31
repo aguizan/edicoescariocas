@@ -57,17 +57,18 @@
       {
         "titulo": "Análise Crítica",
         "capa": "",
-        "descricao": "Descrição completa do serviço 2."
+        "descricao": "Em breve"
       },
       {
         "titulo": "Conversão / Ebook",
         "capa": "",
-        "descricao": "Descrição completa do serviço 3."
+        "descricao": "em breve"
       },
       {
         "titulo": "Clube de Leitura",
         "capa": "",
-        "descricao": "Descrição completa do Clube de Leitura."
+        "descricao": "Vamos criar um clube de leitura? Entre em contato pelo WhatsApp",
+        "tipo": ""
       }
     ]
   },
