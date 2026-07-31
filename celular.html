@@ -42,7 +42,7 @@
   .quote{font-style:italic;font-weight:300;font-size:18px;line-height:1.8;color:rgba(26,26,26,.7);max-width:34ch}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:30px}
   .ph{border:1px solid rgba(26,26,26,.2);background:repeating-linear-gradient(45deg,#e9e9e4,#e9e9e4 7px,#efefe9 7px,#efefe9 14px);display:flex;align-items:flex-end;padding:12px;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:rgba(26,26,26,.55)}
-  .cover{aspect-ratio:2/3;position:relative}
+  .cover{aspect-ratio:2/3}
   .wide{aspect-ratio:16/10;margin-bottom:26px}
   .btn{display:inline-flex;align-items:center;gap:10px;padding:13px 22px;border:1px solid #1a1a1a;color:#1a1a1a;text-decoration:none;font-size:13px;letter-spacing:2px;text-transform:uppercase;transition:background .2s,color .2s;background:none;cursor:pointer;font-family:inherit}
   .btn:hover{background:#1a1a1a;color:#f4f4f2}
@@ -55,7 +55,7 @@
   form input:focus,form textarea:focus{border-bottom-color:#1a1a1a}
   .send{align-self:flex-start;padding:14px 30px;border:none;background:#1a1a1a;color:#f4f4f2;font-size:13px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit}
   .thanks{display:none;font-family:'Instrument Serif',serif;font-size:26px}
-  .carousel{display:flex;align-items:flex-end;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:10px 26px 18px;margin:14px -26px 0}
+  .carousel{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:10px 26px 18px;margin:14px -26px 0}
   .carousel::-webkit-scrollbar{height:6px}
   .carousel::-webkit-scrollbar-thumb{background:rgba(26,26,26,.2);border-radius:3px}
   .bookcard{flex:0 0 auto;width:150px;scroll-snap-align:start;cursor:pointer;background:none;border:none;padding:0;text-align:left;font-family:inherit}
@@ -66,16 +66,7 @@
   #book,#svc{z-index:30}
   @media (prefers-reduced-motion: reduce){.veil{animation:none;opacity:0}.logo{animation:none;transform:none}.hint{animation:none;opacity:.8}}
 </style>
-<script>
-fetch('conteudo.json').then(function(r){return r.json();}).then(function(dados){
-    window.CONTEUDO = dados;
-    document.dispatchEvent(new Event('conteudo-pronto'));
-}).catch(function(e){
-    console.error('[conteudo] Falha ao carregar conteudo.json', e);
-    window.CONTEUDO = window.CONTEUDO || {};
-    document.dispatchEvent(new Event('conteudo-pronto'));
-});
-</script>
+<script src="conteudo.js"></script>
 </head>
 <body>
 <div class="app">
@@ -313,7 +304,7 @@ fetch('conteudo.json').then(function(r){return r.json();}).then(function(dados){
       <a class="btn block" id="ct-wa" href="#" target="_blank" rel="noopener" style="margin-bottom:26px">Conversar no WhatsApp <span>&rarr;</span></a>
       <div class="sep"><span></span>ou<span></span></div>
       <p class="lead" style="margin-bottom:8px">Escreva para o nosso e-mail:</p>
-      <button id="ct-email" type="button" style="display:inline-flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer;font-family:'Instrument Serif',serif;font-size:26px;color:#1a1a1a;padding:0;border-bottom:1px solid rgba(26,26,26,.35);padding-bottom:2px"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="87e6e0f4eae6e9f2f4e4f5eef3e8f4c7e0eae6eeeba9e4e8ea">[email&#160;protected]</a></button>
+      <button id="ct-email" type="button" style="display:inline-flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer;font-family:'Instrument Serif',serif;font-size:26px;color:#1a1a1a;padding:0;border-bottom:1px solid rgba(26,26,26,.35);padding-bottom:2px">agsmanuscritos@gmail.com</button>
       <span id="ct-email-msg" style="display:block;margin-top:10px;font-size:13px;letter-spacing:1px;color:rgba(26,26,26,.5);opacity:0;transition:opacity .2s">copiado ✓</span>
     </div>
   </section>
@@ -328,7 +319,7 @@ fetch('conteudo.json').then(function(r){return r.json();}).then(function(dados){
   </section>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 (function(){
   // Redireciona para index.html quando NÃO estiver em modo retrato/estreito
   // (paisagem, tablet largo ou desktop) — onde a versão principal funciona melhor.
@@ -345,10 +336,10 @@ fetch('conteudo.json').then(function(r){return r.json();}).then(function(dados){
 })();
 </script>
 <script>
-/* Monta as placas a partir de conteudo.json — edite pelo Editor de Conteúdo local ou o JSON diretamente. */
-function __montarConteudoMobile(){
+/* Monta as placas a partir de conteudo.js — edite SEMPRE o conteudo.js, nunca este HTML. */
+(function(){
   var C = window.CONTEUDO;
-  if(!C){ console.warn('conteudo.json não carregou — as placas ficarão vazias.'); return; }
+  if(!C){ console.warn('conteudo.js não carregou — as placas ficarão vazias.'); return; }
   function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function paras(campo){
     var arr;
@@ -370,7 +361,7 @@ function __montarConteudoMobile(){
     var cards=window.__LIVROS.map(function(l,idx){
       var st=l.capa?'background-image:url('+esc(l.capa)+');background-size:cover;background-position:center':'';
       return '<button class="bookcard" data-livro="'+idx+'">'+
-        '<div class="ph cover" style="'+st+'">'+(l.capa?'':'capa')+(l.selo?'<span style="position:absolute;top:8px;right:8px;background:#c0392b;color:#fff;font-size:10px;font-weight:bold;letter-spacing:.5px;text-transform:uppercase;padding:3px 8px;border-radius:3px">'+esc(l.selo)+'</span>':'')+'</div>'+
+        '<div class="ph cover" style="'+st+'">'+(l.capa?'':'capa')+'</div>'+
         '<div class="bookmeta"><b>'+esc(l.titulo)+'</b>'+(l.autor?'<br><span>'+esc(l.autor)+'</span>':'')+'</div>'+
       '</button>';
     }).join('');
@@ -393,74 +384,22 @@ function __montarConteudoMobile(){
     // Mensagem do WhatsApp: pede quantidade; se físico, também endereço
     var msg='Olá! Tenho interesse no livro "'+l.titulo+'"'+(fmt?' ('+fmt+(l.preco?' — '+l.preco:'')+')':'')+'.\n\nQuantidade: \n';
     msg+= ehFisico ? 'Endereço completo para envio (rua, número, complemento, bairro, cidade/UF e CEP): ' : 'Meu e-mail para receber o e-book: ';
-    var avaliacoes=l.avaliacoes||[];
-    var media=avaliacoes.length?(avaliacoes.reduce(function(s,a){return s+(parseFloat(a.nota)||0);},0)/avaliacoes.length):0;
-    var avalHtml='';
-    if(avaliacoes.length){
-      var cheias=Math.round(media), est='';
-      for(var i=1;i<=5;i++) est+=(i<=cheias?'★':'☆');
-      avalHtml+='<div style="font-size:15px;color:#1a1a1a;margin-top:18px">'+
-        '<span style="color:#e0a800;letter-spacing:2px">'+est+'</span> '+media.toFixed(1)+' de '+avaliacoes.length+' avaliação'+(avaliacoes.length>1?'ões':'')+'</div>';
-      avalHtml+=avaliacoes.map(function(a){
-        var n=Math.round(parseFloat(a.nota)||0), e2=''; for(var j=1;j<=5;j++) e2+=(j<=n?'★':'☆');
-        return '<div style="font-size:14px;color:#444;border-top:1px solid rgba(26,26,26,.1);padding:8px 0">'+
-          '<span style="color:#e0a800">'+e2+'</span> <strong>'+esc(a.nome||'Leitor')+'</strong>'+
-          (a.texto?'<div style="margin-top:2px;color:#555">'+esc(a.texto)+'</div>':'')+'</div>';
-      }).join('');
-    }
-    if(num){
-      var idForm='avaliar-'+i;
-      avalHtml+='<div style="margin-top:10px"><button type="button" id="'+idForm+'-abrir" style="font-size:14px;color:#1a1a1a;background:none;border:none;text-decoration:underline;cursor:pointer;padding:0">Avaliar este livro</button>'
-        +'<div id="'+idForm+'" style="display:none;margin-top:10px;padding:14px;background:rgba(0,0,0,.04);border-radius:8px">'
-        +'<div style="font-size:14px;color:#1a1a1a;margin-bottom:8px">Sua nota:</div>'
-        +'<div id="'+idForm+'-estrelas" style="font-size:28px;margin-bottom:12px" data-nota="5">'
-        +[1,2,3,4,5].map(function(n){return '<span class="estrela" data-n="'+n+'" style="cursor:pointer;color:#e0a800">★</span>';}).join('')
-        +'</div>'
-        +'<input type="text" id="'+idForm+'-nome" placeholder="Seu nome" style="width:100%;box-sizing:border-box;font-size:16px;padding:10px;border:1px solid rgba(26,26,26,.28);border-radius:8px;margin-bottom:8px">'
-        +'<textarea id="'+idForm+'-texto" placeholder="Seu comentário" rows="3" style="width:100%;box-sizing:border-box;font-size:16px;padding:10px;border:1px solid rgba(26,26,26,.28);border-radius:8px;margin-bottom:8px;resize:vertical"></textarea>'
-        +'<button type="button" id="'+idForm+'-enviar" style="width:100%;padding:12px;border:none;border-radius:8px;background:#25d366;color:#fff;font-size:15px;cursor:pointer">Enviar avaliação</button>'
-        +'</div></div>';
-    }
     var wa='';
     if(emBreve){
       wa='<div class="btn block" style="margin-top:26px;background:rgba(26,26,26,.06);color:rgba(26,26,26,.55);border-color:rgba(26,26,26,.15);cursor:default">Em breve</div>';
     } else if(num){
       wa='<a class="btn block" href="https://wa.me/'+num+'?text='+encodeURIComponent(msg)+'" target="_blank" rel="noopener" style="background:#25d366;border-color:#25d366;color:#fff;margin-top:26px">Comprar pelo WhatsApp</a>';
+      if(ehFisico){
+        wa+='<p style="font-size:12px;line-height:1.5;color:rgba(26,26,26,.55);text-align:center;margin:10px 0 0">O frete é calculado pelo CEP e informado junto com a chave Pix para pagamento.</p>';
+      }
     }
     set('pb-book',
       '<div class="ph cover" style="'+st+';width:170px;height:255px;aspect-ratio:auto;margin-bottom:24px">'+(l.capa?'':'capa')+'</div>'+
       '<h1 style="font-size:40px">'+esc(l.titulo)+'</h1>'+
       (l.autor?'<p class="lead" style="color:rgba(26,26,26,.55);margin-top:-6px">'+esc(l.autor)+'</p>':'')+
-      fmtLinha+sin+avalHtml+wa);
+      fmtLinha+sin+wa);
     document.getElementById('book').classList.add('open');
     var pb=document.getElementById('pb-book'); if(pb) pb.scrollTop=0;
-    if(num){
-      var idForm2='avaliar-'+i;
-      var btnAbrir=document.getElementById(idForm2+'-abrir'), caixa=document.getElementById(idForm2);
-      if(btnAbrir&&caixa) btnAbrir.onclick=function(){caixa.style.display='block';btnAbrir.style.display='none';};
-      var estrelasEl=document.getElementById(idForm2+'-estrelas');
-      if(estrelasEl){
-        var pintar=function(nota){
-          estrelasEl.querySelectorAll('.estrela').forEach(function(sp){
-            sp.textContent=(parseInt(sp.getAttribute('data-n'),10)<=nota)?'★':'☆';
-          });
-          estrelasEl.setAttribute('data-nota',nota);
-        };
-        estrelasEl.querySelectorAll('.estrela').forEach(function(sp){
-          sp.onclick=function(){pintar(parseInt(sp.getAttribute('data-n'),10));};
-        });
-      }
-      var btnEnviar=document.getElementById(idForm2+'-enviar');
-      if(btnEnviar) btnEnviar.onclick=function(){
-        var nota=estrelasEl?estrelasEl.getAttribute('data-nota'):'5';
-        var nome=(document.getElementById(idForm2+'-nome')||{}).value||'';
-        var texto=(document.getElementById(idForm2+'-texto')||{}).value||'';
-        var msg2='Olá! Quero deixar uma avaliação do livro "'+l.titulo+'":\n\nNota: '+nota+' de 5\nNome: '+nome+'\nComentário: '+texto;
-        var url='https://wa.me/'+num+'?text='+encodeURIComponent(msg2);
-        var a=document.createElement('a'); a.href=url; a.target='_blank'; a.rel='noopener';
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      };
-    }
   }
   var bb=document.querySelector('.back-book');
   if(bb) bb.addEventListener('click',function(){ document.getElementById('book').classList.remove('open'); });
@@ -468,105 +407,24 @@ function __montarConteudoMobile(){
   if(C.servicos){
     var s=C.servicos;
     window.__SERVICOS = s.itens||[];
-    var paletaServicos=['#c0392b','#1f6f5c','#8e44ad','#d68910','#2874a6','#a04000'];
-    var slist=window.__SERVICOS.map(function(it,idx){
-      var cor=paletaServicos[idx%paletaServicos.length];
-      return '<button data-servico="'+idx+'" style="display:flex;align-items:flex-start;gap:14px;width:100%;text-align:left;background:none;border:none;padding:14px 0;cursor:pointer;border-bottom:1px solid rgba(26,26,26,.08)">'+
-        '<span style="flex:0 0 auto;width:16px;height:16px;border-radius:50%;background:'+cor+';margin-top:4px;box-shadow:0 0 0 4px '+cor+'22"></span>'+
-        '<span><span style="display:block;font-family:\'Instrument Serif\',serif;font-size:20px;color:#1a1a1a">'+esc(it.titulo)+'</span>'+
-        (it.descricao?'<span style="display:block;font-size:14px;color:rgba(26,26,26,.65);margin-top:4px;line-height:1.4">'+esc(String(it.descricao).split('\n')[0])+'</span>':'')+
-        '</span></button>';
+    var scards=window.__SERVICOS.map(function(it,idx){
+      var st=it.capa?'background-image:url('+esc(it.capa)+');background-size:cover;background-position:center':'';
+      return '<button class="bookcard" data-servico="'+idx+'">'+
+        '<div class="ph cover" style="'+st+'">'+(it.capa?'':'imagem')+'</div>'+
+        '<div class="bookmeta"><b>'+esc(it.titulo)+'</b></div>'+
+      '</button>';
     }).join('');
-    set('pb-serv','<div class="kicker">'+esc(s.kicker)+'</div><h1>'+esc(s.titulo)+'</h1>'+(s.intro?'<p class="lead">'+esc(s.intro)+'</p>':'')+'<div style="margin-top:12px">'+slist+'</div>');
-    var ss=document.querySelectorAll('#pb-serv [data-servico]');
+    set('pb-serv','<div class="kicker">'+esc(s.kicker)+'</div><h1>'+esc(s.titulo)+'</h1>'+(s.intro?'<p class="lead">'+esc(s.intro)+'</p>':'')+'<div class="carousel">'+scards+'</div>');
+    var ss=document.querySelectorAll('#pb-serv .bookcard');
     for(var si=0;si<ss.length;si++){ ss[si].addEventListener('click',function(){ abrirServico(+this.getAttribute('data-servico')); }); }
-  }
-  function orcHTML(){
-    var o=(C.orcamento)||{};
-    function opsLista(l){ if(Array.isArray(l)) return l.map(function(k){return '<option value="'+esc(k)+'">'+esc(k)+'</option>';}).join(''); return Object.keys(l||{}).map(function(k){return '<option value="'+esc(k)+'">'+esc(k)+'</option>';}).join(''); }
-    var inp='width:100%;font-size:16px;padding:11px 12px;border:1px solid rgba(26,26,26,.28);border-radius:8px;background:#fff;color:#1a1a1a;font-family:inherit;margin-top:6px';
-    var lab='display:block;margin-top:16px;font-size:14px;color:rgba(26,26,26,.7)';
-    function sel(id,rot,l){return '<label style="'+lab+'">'+rot+'<select id="'+id+'" style="'+inp+'">'+opsLista(l)+'</select></label>';}
-    function chk(id,rot){return '<label style="display:flex;align-items:center;gap:10px;margin-top:12px;font-size:16px;color:#1a1a1a"><input type="checkbox" id="'+id+'" style="width:20px;height:20px;flex:0 0 auto"> '+rot+'</label>';}
-    var tmin=o.tiragemMinima||1;
-    return '<label style="'+lab+'">Título do livro<input type="text" id="orc-titulo" placeholder="Nome da obra" style="'+inp+'"></label>'
-      +sel('orc-formato','Formato',o.formato)
-      +sel('orc-papel','Papel',o.precoPagina)
-      +'<label style="'+lab+'">Total de páginas<input type="number" id="orc-paginas" min="0" step="1" value="0" style="'+inp+'"></label>'
-      +'<label style="'+lab+'">Tiragem (mínimo '+tmin+')<input type="number" id="orc-tiragem" min="'+tmin+'" step="1" value="'+tmin+'" style="'+inp+'"></label>'
-      +sel('orc-capa','Capa',o.capa)+sel('orc-laminacao','Laminação',o.laminacao)
-      +'<div style="margin-top:22px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,26,26,.5)">Serviços extras</div>'
-      +chk('orc-isbn','ISBN')+chk('orc-ficha','Ficha catalográfica')+chk('orc-direitos','Direitos autorais')
-      +'<label style="'+lab+'">Desconto (R$) — opcional<input type="number" id="orc-desconto" min="0" step="0.01" value="0" style="'+inp+'"></label>'
-      +'<button type="button" id="orc-calcular" style="margin-top:22px;width:100%;padding:15px;border:none;border-radius:8px;background:#1a1a1a;color:#f4f4f2;font-size:15px;font-family:inherit;cursor:pointer">Calcular orçamento</button>'
-      +'<div id="orc-resultado"></div>';
-  }
-  function orcCalcular(){
-    var o=(C.orcamento)||{}, sym=o.moeda||'R$', numWa=(C.contato&&C.contato.whatsapp)||'';
-    function val(id){var e=document.getElementById(id);return e?e.value:'';}
-    function num(id){var e=document.getElementById(id);return e?(parseFloat(e.value)||0):0;}
-    function mk(id){var e=document.getElementById(id);return !!(e&&e.checked);}
-    function fmt(v){return sym+' '+(v||0).toFixed(2).replace('.',',');}
-    var tmin=o.tiragemMinima||1, tir=parseInt(val('orc-tiragem'),10)||0; if(tir<tmin)tir=tmin;
-    var d={titulo:val('orc-titulo'),formato:val('orc-formato'),papel:val('orc-papel'),paginas:parseInt(val('orc-paginas'),10)||0,tiragem:tir,capa:val('orc-capa'),laminacao:val('orc-laminacao'),isbn:mk('orc-isbn'),ficha:mk('orc-ficha'),direitos:mk('orc-direitos'),desconto:num('orc-desconto')};
-    var exemplar=((o.precoPagina&&o.precoPagina[d.papel])||0)*d.paginas;
-    exemplar+=(o.capa&&o.capa[d.capa])||0; exemplar+=(o.laminacao&&o.laminacao[d.laminacao])||0;
-    var subtotal=exemplar*d.tiragem, extras=0;
-    if(d.isbn)extras+=o.isbn||0; if(d.ficha)extras+=o.fichaCatalografica||0; if(d.direitos)extras+=o.direitosAutorais||0;
-    var tot=subtotal+extras-(d.desconto||0); if(tot<0)tot=0;
-    var unidade=d.tiragem>0?tot/d.tiragem:tot;
-    window.__ORC={d:d,total:tot,unidade:unidade,numWa:numWa,fmt:fmt};
-    var res=document.getElementById('orc-resultado'); if(!res)return;
-    var inp='width:100%;font-size:16px;padding:11px 12px;border:1px solid rgba(26,26,26,.28);border-radius:8px;background:#fff;color:#1a1a1a;font-family:inherit;margin-top:6px';
-    var lab='display:block;margin-top:16px;font-size:14px;color:rgba(26,26,26,.7)';
-    var html='<div style="text-align:center;margin-top:22px"><span style="display:block;font-family:\'Instrument Serif\',serif;font-size:40px;color:#1a1a1a">'+fmt(unidade)+'</span><span style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,26,26,.5)">por exemplar</span></div>';
-    html+='<div style="text-align:center;margin-top:6px;font-size:15px;color:#1a1a1a">Total ('+d.tiragem+' un.): <strong>'+fmt(tot)+'</strong></div>';
-    html+='<button type="button" id="orc-aceitar" style="margin-top:16px;width:100%;padding:15px;border:none;border-radius:8px;background:#25d366;color:#fff;font-size:15px;font-family:inherit;cursor:pointer">Aceitar orçamento</button>';
-    html+='<div id="orc-dados" style="display:none">'
-      +'<div style="margin-top:22px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,26,26,.5)">Seus dados</div>'
-      +'<label style="'+lab+'">Nome<input type="text" id="orc-nome" style="'+inp+'"></label>'
-      +'<label style="'+lab+'">E-mail<input type="email" id="orc-email" style="'+inp+'"></label>'
-      +'<label style="'+lab+'">WhatsApp<input type="tel" id="orc-fone" placeholder="(DDD) número" style="'+inp+'"></label>'
-      +'<label style="'+lab+'">CEP para entrega<input type="text" id="orc-cep" placeholder="00000-000" style="'+inp+'"></label>'
-      +'<button type="button" id="orc-enviar" style="margin-top:18px;width:100%;padding:15px;border:none;border-radius:8px;background:#25d366;color:#fff;font-size:15px;font-family:inherit;cursor:pointer">Enviar pedido pelo WhatsApp</button>'
-      +'</div>';
-    res.innerHTML=html;
-    var bAce=document.getElementById('orc-aceitar');
-    if(bAce)bAce.addEventListener('click',function(){var f=document.getElementById('orc-dados');if(f)f.style.display='block';bAce.style.display='none';var n=document.getElementById('orc-nome');if(n)n.focus();});
-    var bEnv=document.getElementById('orc-enviar');
-    if(bEnv)bEnv.addEventListener('click',orcEnviar);
-  }
-  function orcEnviar(){
-    var O=window.__ORC; if(!O)return;
-    function v(id){var e=document.getElementById(id);return e?e.value.trim():'';}
-    var cli={nome:v('orc-nome'),email:v('orc-email'),fone:v('orc-fone'),cep:v('orc-cep')};
-    if(!cli.nome){var n=document.getElementById('orc-nome');if(n)n.focus();return;}
-    if(!O.numWa)return;
-    var d=O.d;
-    var L=['✅ ORÇAMENTO ACEITO — pedido de impressão','','Nome: '+cli.nome,'E-mail: '+cli.email,'WhatsApp: '+cli.fone,'CEP para entrega: '+cli.cep,'','--- Especificações ---'];
-    if(d.titulo)L.push('Título: '+d.titulo);
-    L.push('Formato: '+d.formato,'Papel: '+d.papel,'Total de páginas: '+d.paginas,'Tiragem: '+d.tiragem,'Capa: '+d.capa,'Laminação: '+d.laminacao);
-    var ex=[]; if(d.isbn)ex.push('ISBN'); if(d.ficha)ex.push('Ficha catalográfica'); if(d.direitos)ex.push('Direitos autorais');
-    L.push('Extras: '+(ex.length?ex.join(', '):'nenhum'));
-    if(d.desconto)L.push('Desconto: '+O.fmt(d.desconto));
-    L.push('','Valor por exemplar: '+O.fmt(O.unidade),'Valor total ('+d.tiragem+' un.): '+O.fmt(O.total));
-    var url='https://wa.me/'+O.numWa+'?text='+encodeURIComponent(L.join('\n'));
-    var a=document.createElement('a'); a.href=url; a.target='_blank'; a.rel='noopener';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
   }
   function abrirServico(i){
     var it=(window.__SERVICOS||[])[i]; if(!it) return;
-    if(it.tipo==='orcamento'){
-      var tit=(C.orcamento&&C.orcamento.titulo)||it.titulo;
-      set('pb-svc','<div class="kicker" style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:rgba(26,26,26,.5);margin-bottom:10px">'+esc((C.servicos&&C.servicos.kicker)||'')+'</div><h1 style="font-size:34px;margin-bottom:4px">'+esc(tit)+'</h1>'+orcHTML());
-      var b=document.getElementById('orc-calcular'); if(b) b.addEventListener('click',orcCalcular);
-    } else {
-      var st=it.capa?'background-image:url('+esc(it.capa)+');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:transparent;border-color:transparent':'';
-      var desc=String(it.descricao||'').split('\n').filter(function(x){return x.trim();}).map(function(t){return '<p class="lead" style="margin-top:14px">'+esc(t)+'</p>';}).join('');
-      set('pb-svc',
-        '<div class="ph cover" style="'+st+';width:170px;height:255px;aspect-ratio:auto;margin-bottom:24px">'+(it.capa?'':'imagem')+'</div>'+
-        '<h1 style="font-size:40px">'+esc(it.titulo)+'</h1>'+desc);
-    }
+    var st=it.capa?'background-image:url('+esc(it.capa)+');background-size:cover;background-position:center':'';
+    var desc=String(it.descricao||'').split('\n').filter(function(x){return x.trim();}).map(function(t){return '<p class="lead" style="margin-top:14px">'+esc(t)+'</p>';}).join('');
+    set('pb-svc',
+      '<div class="ph cover" style="'+st+';width:170px;height:255px;aspect-ratio:auto;margin-bottom:24px">'+(it.capa?'':'imagem')+'</div>'+
+      '<h1 style="font-size:40px">'+esc(it.titulo)+'</h1>'+desc);
     document.getElementById('svc').classList.add('open');
     var pb=document.getElementById('pb-svc'); if(pb) pb.scrollTop=0;
   }
@@ -595,8 +453,7 @@ function __montarConteudoMobile(){
       });
     }
   }
-}
-if (window.CONTEUDO) { __montarConteudoMobile(); } else { document.addEventListener('conteudo-pronto', __montarConteudoMobile); }
+})();
 </script>
 <script>
 (function(){

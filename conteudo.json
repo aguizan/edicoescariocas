@@ -76,9 +76,9 @@
     "moeda": "R$",
     "tiragemMinima": 10,
     "precoPagina": {
-      "Papel 75g": 0.11,
-      "Papel 90g": 0.15,
-      "Papel Off White": 0.13
+      "Papel 75g": 1.361,
+      "Papel 90g": 1.3701,
+      "Papel Off White": 1.367
     },
     "formato": [
       "A5",
