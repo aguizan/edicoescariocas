@@ -363,13 +363,20 @@ function __montarConteudoMobile(){
     set('pb-quem','<div class="kicker">'+esc(C.quem.kicker)+'</div><h1>'+esc(C.quem.titulo)+'</h1>'+paras(C.quem.texto||C.quem.paragrafos)+fq);
   }
 
+  function estrelasTexto(nota){
+    var n=Math.round(Number(nota)||0);
+    return '★★★★★☆☆☆☆☆'.slice(5-n,10-n);
+  }
   if(C.publicacoes){
     var p=C.publicacoes;
     window.__LIVROS = p.livros||[];
     var cards=window.__LIVROS.map(function(l,idx){
       var st=l.capa?'background-image:url('+esc(l.capa)+');background-size:cover;background-position:center':'';
-      return '<button class="bookcard" data-livro="'+idx+'">'+
-        '<div class="ph cover" style="'+st+'">'+(l.capa?'':'capa')+'</div>'+
+      var avals=Array.isArray(l.avaliacoes)?l.avaliacoes:[];
+      var media=avals.length?(avals.reduce(function(s,a){return s+(Number(a.nota)||0);},0)/avals.length):0;
+      var estHtml=avals.length?'<span style="position:absolute;left:6px;bottom:6px;font-size:11px;color:#e8a33d;background:rgba(255,255,255,.85);padding:2px 6px;border-radius:3px;letter-spacing:1px">'+estrelasTexto(media)+' '+media.toFixed(1)+'</span>':'';
+      return '<button class="bookcard" data-livro="'+idx+'" style="position:relative">'+
+        '<div class="ph cover" style="'+st+'">'+(l.capa?'':'capa')+'</div>'+estHtml+
         '<div class="bookmeta"><b>'+esc(l.titulo)+'</b>'+(l.autor?'<br><span>'+esc(l.autor)+'</span>':'')+'</div>'+
       '</button>';
     }).join('');
@@ -405,12 +412,63 @@ function __montarConteudoMobile(){
       '<div class="ph cover" style="'+st+';width:170px;height:255px;aspect-ratio:auto;margin-bottom:24px">'+(l.capa?'':'capa')+'</div>'+
       '<h1 style="font-size:40px">'+esc(l.titulo)+'</h1>'+
       (l.autor?'<p class="lead" style="color:rgba(26,26,26,.55);margin-top:-6px">'+esc(l.autor)+'</p>':'')+
-      fmtLinha+sin+wa);
+      fmtLinha+sin+montarBlocoAvaliacoes(l,num)+wa);
     document.getElementById('book').classList.add('open');
     var pb=document.getElementById('pb-book'); if(pb) pb.scrollTop=0;
+    ligarBlocoAvaliacoes(l,num);
   }
   var bb=document.querySelector('.back-book');
   if(bb) bb.addEventListener('click',function(){ document.getElementById('book').classList.remove('open'); });
+
+  function montarBlocoAvaliacoes(l,num){
+    var avals=Array.isArray(l.avaliacoes)?l.avaliacoes:[];
+    var media=avals.length?(avals.reduce(function(s,a){return s+(Number(a.nota)||0);},0)/avals.length):0;
+    var html='<div style="margin:14px 0">';
+    if(avals.length){
+      html+='<div style="font-size:14px;color:#1a1a1a;margin-bottom:8px"><span style="color:#e8a33d;letter-spacing:1px">'+estrelasTexto(media)+'</span> '+media.toFixed(1)+' · '+avals.length+(avals.length===1?' avaliação':' avaliações')+'</div>';
+      html+=avals.map(function(a){
+        return '<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(26,26,26,.08)">'+
+          '<div style="color:#e8a33d;font-size:13px;letter-spacing:1px">'+estrelasTexto(a.nota)+'</div>'+
+          '<div style="font-size:13px;color:#1a1a1a"><b>'+esc(a.nome||'Leitor')+'</b>'+(a.comentario?' — '+esc(a.comentario):'')+'</div>'+
+        '</div>';
+      }).join('');
+    } else {
+      html+='<p class="lead" style="font-size:14px;color:rgba(26,26,26,.55)">Ainda sem avaliações.</p>';
+    }
+    html+='<button type="button" class="btn-avaliar" style="font-size:14px;background:none;border:none;color:#1a1a1a;text-decoration:underline;cursor:pointer;padding:0">Avaliar este livro</button>';
+    html+='<div class="form-avaliar" style="display:none;margin-top:10px">'+
+      '<div style="font-size:26px;letter-spacing:6px;color:#e8a33d;cursor:pointer;margin-bottom:8px">'+[0,1,2,3,4].map(function(){return '<span class="estrela-input">☆</span>';}).join('')+'</div>'+
+      '<input type="text" class="input-nome-avaliacao" placeholder="Seu nome" style="width:100%;font-size:16px;padding:11px 12px;border:1px solid rgba(26,26,26,.28);border-radius:8px;background:#fff;color:#1a1a1a;margin-bottom:8px">'+
+      '<textarea class="input-comentario-avaliacao" placeholder="Comentário (opcional)" rows="3" style="width:100%;font-size:16px;padding:11px 12px;border:1px solid rgba(26,26,26,.28);border-radius:8px;background:#fff;color:#1a1a1a;margin-bottom:8px"></textarea>'+
+      '<button type="button" class="btn-enviar-avaliacao" style="width:100%;padding:15px;border:none;border-radius:8px;background:#25d366;color:#fff;font-size:15px;font-family:inherit;cursor:pointer">Enviar avaliação pelo WhatsApp</button>'+
+      '</div></div>';
+    return html;
+  }
+
+  function ligarBlocoAvaliacoes(l,num){
+    var pb=document.getElementById('pb-book'); if(!pb) return;
+    var notaSel=0;
+    var estrelas=pb.querySelectorAll('.estrela-input');
+    for(var ei=0;ei<estrelas.length;ei++){
+      estrelas[ei].addEventListener('click',function(){
+        var idx=Array.prototype.indexOf.call(estrelas,this);
+        notaSel=idx+1;
+        for(var j=0;j<estrelas.length;j++){ estrelas[j].textContent = j<notaSel ? '★' : '☆'; }
+      });
+    }
+    var btnAvaliar=pb.querySelector('.btn-avaliar');
+    var formAvaliar=pb.querySelector('.form-avaliar');
+    if(btnAvaliar&&formAvaliar) btnAvaliar.addEventListener('click',function(){ formAvaliar.style.display = formAvaliar.style.display==='none'?'block':'none'; });
+    var btnEnviar=pb.querySelector('.btn-enviar-avaliacao');
+    if(btnEnviar) btnEnviar.addEventListener('click',function(){
+      var nome=(pb.querySelector('.input-nome-avaliacao').value||'').trim();
+      var comentario=(pb.querySelector('.input-comentario-avaliacao').value||'').trim();
+      if(!notaSel||!nome){ alert('Escolha uma nota e informe seu nome.'); return; }
+      if(!num) return;
+      var msg='Avaliação do livro "'+l.titulo+'":\nNota: '+notaSel+'/5\nNome: '+nome+(comentario?'\nComentário: '+comentario:'');
+      window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+    });
+  }
 
   var CORES_SERVICOS=['#c0392b','#1f6f5c','#8e44ad','#d68910'];
   if(C.servicos){

@@ -22,7 +22,8 @@
         "capa": "assets/capa/arquiteto.jpg",
         "formato": "E-book",
         "preco": "R$ 7,00",
-        "sinopse": "O Arquiteto do Invisível é o primeiro romance de Anderson Guizan Silva e convida o leitor a uma reflexão profunda sobre o poder da intenção, da educação e da capacidade humana de transformar a realidade.\n\nQuando um homem comum descobre que seus pensamentos podem alcançar outras pessoas, ele é conduzido a uma jornada surpreendente, onde imaginação, esperança e responsabilidade se entrelaçam na construção de um mundo melhor. Entre o real e o invisível, a história revela que as maiores mudanças começam dentro de cada um de nós.\n\nUm romance sensível e inspirador sobre sonhos, solidariedade e o extraordinário poder das boas ideias."
+        "sinopse": "O Arquiteto do Invisível é o primeiro romance de Anderson Guizan Silva e convida o leitor a uma reflexão profunda sobre o poder da intenção, da educação e da capacidade humana de transformar a realidade.\n\nQuando um homem comum descobre que seus pensamentos podem alcançar outras pessoas, ele é conduzido a uma jornada surpreendente, onde imaginação, esperança e responsabilidade se entrelaçam na construção de um mundo melhor. Entre o real e o invisível, a história revela que as maiores mudanças começam dentro de cada um de nós.\n\nUm romance sensível e inspirador sobre sonhos, solidariedade e o extraordinário poder das boas ideias.",
+        "avaliacoes": []
       },
       {
         "titulo": "A Promessa da Guanabara",
@@ -30,7 +31,8 @@
         "capa": "assets/capa/promessa.jpg",
         "formato": "Físico",
         "preco": "R$ 54,00",
-        "sinopse": "No Rio de Janeiro de 1958, enquanto o rádio anunciava o primeiro título mundial e a Bossa Nova surgia como um sussurro nas janelas de Copacabana, um menino começava a desenhar sua própria história. Entre o barulho dos bondes que partiam e o silêncio dos novos edifícios que subiam, ele cresceu observando a alma de uma cidade em constante metamorfose.\n\nEm um relato que cruza décadas, este livro é uma arqueologia dos afetos. Das mãos do avô que “sabiam pensar” às ladeiras de pedra da Praça XV, acompanhamos uma trajetória que sobrevive entre o concreto e a saudade. Uma obra sobre o que o tempo apaga, o que a tecnologia transforma e o que o coração se recusa a esquecer — um enigma que só se completa quando a última página é escrita."
+        "sinopse": "No Rio de Janeiro de 1958, enquanto o rádio anunciava o primeiro título mundial e a Bossa Nova surgia como um sussurro nas janelas de Copacabana, um menino começava a desenhar sua própria história. Entre o barulho dos bondes que partiam e o silêncio dos novos edifícios que subiam, ele cresceu observando a alma de uma cidade em constante metamorfose.\n\nEm um relato que cruza décadas, este livro é uma arqueologia dos afetos. Das mãos do avô que “sabiam pensar” às ladeiras de pedra da Praça XV, acompanhamos uma trajetória que sobrevive entre o concreto e a saudade. Uma obra sobre o que o tempo apaga, o que a tecnologia transforma e o que o coração se recusa a esquecer — um enigma que só se completa quando a última página é escrita.",
+        "avaliacoes": []
       },
       {
         "titulo": "O Segredo do Solar",
@@ -39,7 +41,8 @@
         "formato": "Físico",
         "preco": "R$ 82,00",
         "selo": "Lançamento",
-        "sinopse": "Na Lapa, o tempo tem outro ritmo. Os sobrados guardam segredos que os moradores já esqueceram, e os objetos antigos chegam às mãos de quem sabe escutá-los.\n\nAristides de Castro tem um brechó. Restaura peças, conhece histórias, vive devagar. Até o dia em que, dentro de uma caixinha de madeira com fundo falso, encontra um bilhete que não devia estar ali.\n\nA partir desse momento, o que parecia rotina começa a revelar suas camadas mais fundas — um solar abandonado no centro do Rio, uma herança que ninguém reclama, e gente disposta a muito para encontrá-la primeiro.\n\n‘O Segredo do Solar’ é um romance sobre o que a cidade esconde sob o asfalto, sobre o que as pessoas escondem de si mesmas — e sobre o que vale a pena guardar."
+        "sinopse": "Na Lapa, o tempo tem outro ritmo. Os sobrados guardam segredos que os moradores já esqueceram, e os objetos antigos chegam às mãos de quem sabe escutá-los.\n\nAristides de Castro tem um brechó. Restaura peças, conhece histórias, vive devagar. Até o dia em que, dentro de uma caixinha de madeira com fundo falso, encontra um bilhete que não devia estar ali.\n\nA partir desse momento, o que parecia rotina começa a revelar suas camadas mais fundas — um solar abandonado no centro do Rio, uma herança que ninguém reclama, e gente disposta a muito para encontrá-la primeiro.\n\n‘O Segredo do Solar’ é um romance sobre o que a cidade esconde sob o asfalto, sobre o que as pessoas escondem de si mesmas — e sobre o que vale a pena guardar.",
+        "avaliacoes": []
       }
     ]
   },
@@ -57,17 +60,17 @@
       {
         "titulo": "Análise Crítica",
         "capa": "",
-        "descricao": "Estamos trabalhando para entregar este serviço para você."
+        "descricao": "Descrição completa do serviço 2."
       },
       {
         "titulo": "Conversão / Ebook",
         "capa": "",
-        "descricao": "Em breve."
+        "descricao": "Descrição completa do serviço 3."
       },
       {
         "titulo": "Clube de Leitura",
         "capa": "",
-        "descricao": "Vamos formar um clube de leitura. Entre em contato pelo WhatsApp."
+        "descricao": "Descrição completa do Clube de Leitura."
       }
     ]
   },
@@ -76,9 +79,9 @@
     "moeda": "R$",
     "tiragemMinima": 10,
     "precoPagina": {
-      "Papel 75g": 0.175,
-      "Papel 90g": 0.21,
-      "Papel Off White": 0.19
+      "Papel 75g": 1.361,
+      "Papel 90g": 1.3701,
+      "Papel Off White": 1.367
     },
     "formato": [
       "A5",
@@ -97,7 +100,7 @@
     },
     "isbn": 51,
     "fichaCatalografica": 82,
-    "direitosAutorais": 160
+    "direitosAutorais": 0
   },
   "contato": {
     "kicker": "05 · Contato",

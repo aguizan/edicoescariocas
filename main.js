@@ -334,6 +334,14 @@ console.log("Projeto iniciado.");
                     card.appendChild(legenda);
                 }
 
+                if (item.avaliacoes !== undefined) {
+                    const est = document.createElement('span');
+                    est.className = 'item-carrossel-estrelas';
+                    est.style.cssText = 'position:absolute;left:6px;bottom:6px;font-size:12px;color:#e8a33d;background:rgba(255,255,255,.85);padding:2px 6px;border-radius:3px;letter-spacing:1px;';
+                    est.textContent = item.avaliacoes.length ? estrelasTexto(item.mediaNota) + ' ' + item.mediaNota.toFixed(1) : '';
+                    if (item.avaliacoes.length) card.appendChild(est);
+                }
+
                 card.addEventListener('click', function (evento) {
                     evento.stopPropagation();
                     config.aoClicarItem(item);
@@ -423,6 +431,50 @@ console.log("Projeto iniciado.");
        PAINÉIS DE DETALHE (livro / serviço)
        ========================================================= */
 
+    function estrelasTexto(nota) {
+        const n = Math.round(Number(nota) || 0);
+        return '★★★★★☆☆☆☆☆'.slice(5 - n, 10 - n);
+    }
+
+    function montarBlocoAvaliacoes(item) {
+        const avals = item.avaliacoes || [];
+        let html = '<div style="font-style:normal;margin:4px 0 14px;">';
+        if (avals.length) {
+            html += '<div style="font-size:14px;color:#2c3e50;margin-bottom:8px;">'
+                + '<span style="color:#e8a33d;letter-spacing:1px;">' + estrelasTexto(item.mediaNota) + '</span> '
+                + item.mediaNota.toFixed(1) + ' · ' + avals.length + (avals.length === 1 ? ' avaliação' : ' avaliações') + '</div>';
+            html += avals.map(function (a) {
+                return '<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(0,0,0,.08);">'
+                    + '<div style="color:#e8a33d;font-size:13px;letter-spacing:1px;">' + estrelasTexto(a.nota) + '</div>'
+                    + '<div style="font-size:13px;color:#2c3e50;"><strong>' + (a.nome || 'Leitor') + '</strong>' + (a.comentario ? ' — ' + a.comentario : '') + '</div>'
+                    + '</div>';
+            }).join('');
+        } else {
+            html += '<p style="font-size:13px;color:#6b7683;margin-bottom:8px;">Ainda sem avaliações.</p>';
+        }
+        html += '<button type="button" class="btn-avaliar" style="font-style:normal;font-size:13px;background:none;border:none;color:#2c3e50;text-decoration:underline;cursor:pointer;padding:0;">Avaliar este livro</button>';
+        html += '<div class="form-avaliar" style="display:none;margin-top:10px;">'
+            + '<div style="font-size:20px;letter-spacing:4px;color:#e8a33d;cursor:pointer;margin-bottom:6px;">'
+            + [0, 1, 2, 3, 4].map(function () { return '<span class="estrela-input">☆</span>'; }).join('')
+            + '</div>'
+            + '<input type="text" class="input-nome-avaliacao" placeholder="Seu nome" style="width:100%;font-family:sans-serif;font-size:13px;padding:6px;border:1px solid #ccc;border-radius:4px;margin-bottom:6px;">'
+            + '<textarea class="input-comentario-avaliacao" placeholder="Comentário (opcional)" rows="2" style="width:100%;font-family:sans-serif;font-size:13px;padding:6px;border:1px solid #ccc;border-radius:4px;margin-bottom:6px;"></textarea>'
+            + '<button type="button" class="btn-enviar-avaliacao" style="font-style:normal;font-size:13px;color:#fff;background:#25d366;border:none;padding:8px 14px;border-radius:4px;cursor:pointer;">Enviar avaliação pelo WhatsApp</button>'
+            + '</div>';
+        html += '</div>';
+        return html;
+    }
+
+    function enviarAvaliacao(elAval, item) {
+        const nota = Number(elAval.dataset.notaSelecionada || 0);
+        const nome = (elAval.querySelector('.input-nome-avaliacao').value || '').trim();
+        const comentario = (elAval.querySelector('.input-comentario-avaliacao').value || '').trim();
+        if (!nota || !nome) { alert('Escolha uma nota e informe seu nome.'); return; }
+        if (!item.numWaAvaliacao) return;
+        const msg = 'Avaliação do livro "' + item.titulo + '":\nNota: ' + nota + '/5\nNome: ' + nome + (comentario ? '\nComentário: ' + comentario : '');
+        window.open('https://wa.me/' + item.numWaAvaliacao + '?text=' + encodeURIComponent(msg), '_blank');
+    }
+
     function criarPainelDetalhe(painelId, camposIds) {
         const painel = document.getElementById(painelId);
         const elCapa = document.getElementById(camposIds.capa);
@@ -463,6 +515,42 @@ console.log("Projeto iniciado.");
             }
 
             if (elTexto) elTexto.textContent = item.texto;
+
+            // Bloco de avaliações + botão "Avaliar este livro" (só para livros, quando o item tem avaliacoes/numWaAvaliacao definidos).
+            if (camposIds.avaliacoes) {
+                const elAval = document.getElementById(camposIds.avaliacoes);
+                if (elAval) {
+                    if (item.avaliacoes !== undefined) {
+                        elAval.innerHTML = montarBlocoAvaliacoes(item);
+                        elAval.style.display = 'block';
+                        const btnAvaliar = elAval.querySelector('.btn-avaliar');
+                        const formAvaliar = elAval.querySelector('.form-avaliar');
+                        if (btnAvaliar && formAvaliar) {
+                            btnAvaliar.addEventListener('click', function () {
+                                formAvaliar.style.display = formAvaliar.style.display === 'none' ? 'block' : 'none';
+                            });
+                        }
+                        const btnEnviarAval = elAval.querySelector('.btn-enviar-avaliacao');
+                        if (btnEnviarAval) {
+                            btnEnviarAval.addEventListener('click', function () {
+                                enviarAvaliacao(elAval, item);
+                            });
+                        }
+                        let estrelaSel = 0;
+                        elAval.querySelectorAll('.estrela-input').forEach(function (est, i) {
+                            est.addEventListener('click', function () {
+                                estrelaSel = i + 1;
+                                elAval.querySelectorAll('.estrela-input').forEach(function (e2, j) {
+                                    e2.textContent = j < estrelaSel ? '★' : '☆';
+                                });
+                                elAval.dataset.notaSelecionada = estrelaSel;
+                            });
+                        });
+                    } else {
+                        elAval.style.display = 'none';
+                    }
+                }
+            }
 
             // Botão de compra: só "Comprar pelo WhatsApp" (ou "Em breve").
             if (elVendas) {
@@ -526,6 +614,8 @@ console.log("Projeto iniciado.");
         msg += ehFisico
             ? 'Endereço completo para envio (rua, número, complemento, bairro, cidade/UF e CEP): '
             : 'Meu e-mail para receber o e-book: ';
+        const avals = Array.isArray(l.avaliacoes) ? l.avaliacoes : [];
+        const media = avals.length ? (avals.reduce(function (s, a) { return s + (Number(a.nota) || 0); }, 0) / avals.length) : 0;
         return {
             titulo: l.titulo || '',
             autor: l.autor || '',
@@ -535,7 +625,10 @@ console.log("Projeto iniciado.");
             preco: preco,
             selo: l.selo || '',
             emBreve: emBreve,
-            whatsappLink: (!emBreve && numWa) ? 'https://wa.me/' + numWa + '?text=' + encodeURIComponent(msg) : ''
+            whatsappLink: (!emBreve && numWa) ? 'https://wa.me/' + numWa + '?text=' + encodeURIComponent(msg) : '',
+            avaliacoes: avals,
+            mediaNota: media,
+            numWaAvaliacao: numWa
         };
     });
 
@@ -543,6 +636,7 @@ console.log("Projeto iniciado.");
         capa: 'detalhe-livro-capa',
         titulo: 'detalhe-livro-titulo',
         texto: 'detalhe-livro-sinopse',
+        avaliacoes: 'detalhe-livro-avaliacoes',
         vendas: 'detalhe-livro-vendas',
         link: 'detalhe-livro-link',
     });
