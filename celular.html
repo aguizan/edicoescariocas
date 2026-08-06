@@ -395,18 +395,23 @@ function __montarConteudoMobile(){
     var emBreve=/^em breve/i.test(fmt);
     var ehFisico=/f[íi]sico/i.test(fmt);
     var temAmbos=/f[íi]sico/i.test(fmt)&&/e-?book/i.test(fmt);
+    var soEbook=/e-?book/i.test(fmt)&&!/f[íi]sico/i.test(fmt);
     // Linha(s) formato · preço, abaixo do autor
     var linhas=[];
     if(temAmbos){
       if(l.preco) linhas.push('Físico · '+l.preco);
       if(l.precoEbook) linhas.push('E-book · '+l.precoEbook);
+    } else if(soEbook){
+      var precoCerto=l.precoEbook||l.preco;
+      if(precoCerto) linhas.push(fmt+' · '+precoCerto);
     } else {
       var partes=[]; if(fmt) partes.push(fmt); if(l.preco) partes.push(l.preco);
       if(partes.length) linhas.push(partes.join(' · '));
     }
     var fmtLinha=linhas.length?'<p class="lead" style="margin-top:6px;font-size:15px;letter-spacing:.5px;text-transform:uppercase;color:rgba(26,26,26,.6)">'+linhas.map(esc).join('<br>')+'</p>':'';
     // Mensagem do WhatsApp: pede quantidade; se físico, também endereço
-    var msg='Olá! Tenho interesse no livro "'+l.titulo+'"'+(fmt?' ('+fmt+(l.preco?' — '+l.preco:'')+')':'')+'.\n\nQuantidade: \n';
+    var precoMsg = temAmbos ? l.preco : (soEbook ? (l.precoEbook||l.preco) : l.preco);
+    var msg='Olá! Tenho interesse no livro "'+l.titulo+'"'+(fmt?' ('+fmt+(precoMsg?' — '+precoMsg:'')+')':'')+'.\n\nQuantidade: \n';
     msg+= ehFisico ? 'Endereço completo para envio (rua, número, complemento, bairro, cidade/UF e CEP): ' : 'Meu e-mail para receber o e-book: ';
     var wa='';
     if(emBreve){

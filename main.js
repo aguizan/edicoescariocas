@@ -499,10 +499,14 @@ console.log("Projeto iniciado.");
                 const marca = 'meta-formato';
                 let meta = elTitulo.parentNode.querySelector('.' + marca);
                 const temAmbos = item.formato && item.formato.indexOf('Físico') !== -1 && item.formato.indexOf('E-book') !== -1;
+                const soEbook = item.formato && item.formato.indexOf('E-book') !== -1 && item.formato.indexOf('Físico') === -1;
                 let linhas = [];
                 if (temAmbos) {
                     if (item.preco) linhas.push('Físico · ' + item.preco);
                     if (item.precoEbook) linhas.push('E-book · ' + item.precoEbook);
+                } else if (soEbook) {
+                    const precoCerto = item.precoEbook || item.preco;
+                    if (precoCerto) linhas.push(item.formato + ' · ' + precoCerto);
                 } else {
                     const partes = [];
                     if (item.formato) partes.push(item.formato);
@@ -618,8 +622,10 @@ console.log("Projeto iniciado.");
         const formato = (l.formato || '').trim();
         const emBreve = /^em breve/i.test(formato);
         const ehFisico = /f[íi]sico/i.test(formato);
+        const soEbookMsg = /e-?book/i.test(formato) && !ehFisico;
+        const precoMsg = soEbookMsg ? (l.precoEbook || l.preco || '') : preco;
         let msg = 'Olá! Tenho interesse no livro "' + (l.titulo || '') + '"'
-            + (formato ? ' (' + formato + (preco ? ' — ' + preco : '') + ')' : '') + '.\n\nQuantidade: \n';
+            + (formato ? ' (' + formato + (precoMsg ? ' — ' + precoMsg : '') + ')' : '') + '.\n\nQuantidade: \n';
         msg += ehFisico
             ? 'Endereço completo para envio (rua, número, complemento, bairro, cidade/UF e CEP): '
             : 'Meu e-mail para receber o e-book: ';
