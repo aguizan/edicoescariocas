@@ -494,20 +494,29 @@ console.log("Projeto iniciado.");
             if (elTitulo) elTitulo.textContent = item.titulo;
 
             // Linha "Formato · Preço" logo abaixo do título (só para livros).
+            // Quando o livro tem os dois formatos, mostra Físico e E-book em linhas separadas.
             if (elTitulo) {
                 const marca = 'meta-formato';
                 let meta = elTitulo.parentNode.querySelector('.' + marca);
-                const partes = [];
-                if (item.formato) partes.push(item.formato);
-                if (item.preco) partes.push(item.preco);
-                if (partes.length) {
+                const temAmbos = item.formato && item.formato.indexOf('Físico') !== -1 && item.formato.indexOf('E-book') !== -1;
+                let linhas = [];
+                if (temAmbos) {
+                    if (item.preco) linhas.push('Físico · ' + item.preco);
+                    if (item.precoEbook) linhas.push('E-book · ' + item.precoEbook);
+                } else {
+                    const partes = [];
+                    if (item.formato) partes.push(item.formato);
+                    if (item.preco) partes.push(item.preco);
+                    if (partes.length) linhas.push(partes.join(' · '));
+                }
+                if (linhas.length) {
                     if (!meta) {
                         meta = document.createElement('p');
                         meta.className = marca;
                         meta.style.cssText = 'font-style:normal;font-size:13px;letter-spacing:.5px;text-transform:uppercase;color:#6b7683;margin:-4px 0 10px;';
                         elTitulo.parentNode.insertBefore(meta, elTitulo.nextSibling);
                     }
-                    meta.textContent = partes.join(' · ');
+                    meta.innerHTML = linhas.join('<br>');
                     meta.style.display = 'block';
                 } else if (meta) {
                     meta.style.display = 'none';
@@ -623,6 +632,7 @@ console.log("Projeto iniciado.");
             texto: l.sinopse || '',
             formato: formato,
             preco: preco,
+        precoEbook: l.precoEbook || '',
             selo: l.selo || '',
             emBreve: emBreve,
             whatsappLink: (!emBreve && numWa) ? 'https://wa.me/' + numWa + '?text=' + encodeURIComponent(msg) : '',

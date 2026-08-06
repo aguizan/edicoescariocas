@@ -21,9 +21,10 @@
         "autor": "Anderson Guizan Silva",
         "capa": "assets/capa/arquiteto.jpg",
         "formato": "E-book",
-        "preco": "R$ 7,00",
+        "preco": "0",
         "sinopse": "O Arquiteto do Invisível é o primeiro romance de Anderson Guizan Silva e convida o leitor a uma reflexão profunda sobre o poder da intenção, da educação e da capacidade humana de transformar a realidade.\n\nQuando um homem comum descobre que seus pensamentos podem alcançar outras pessoas, ele é conduzido a uma jornada surpreendente, onde imaginação, esperança e responsabilidade se entrelaçam na construção de um mundo melhor. Entre o real e o invisível, a história revela que as maiores mudanças começam dentro de cada um de nós.\n\nUm romance sensível e inspirador sobre sonhos, solidariedade e o extraordinário poder das boas ideias.",
-        "avaliacoes": []
+        "avaliacoes": [],
+        "precoEbook": "R$ 7,00"
       },
       {
         "titulo": "A Promessa da Guanabara",
@@ -33,7 +34,8 @@
         "preco": "R$ 54,00",
         "sinopse": "No Rio de Janeiro de 1958, enquanto o rádio anunciava o primeiro título mundial e a Bossa Nova surgia como um sussurro nas janelas de Copacabana, um menino começava a desenhar sua própria história. Entre o barulho dos bondes que partiam e o silêncio dos novos edifícios que subiam, ele cresceu observando a alma de uma cidade em constante metamorfose.\n\nEm um relato que cruza décadas, este livro é uma arqueologia dos afetos. Das mãos do avô que “sabiam pensar” às ladeiras de pedra da Praça XV, acompanhamos uma trajetória que sobrevive entre o concreto e a saudade. Uma obra sobre o que o tempo apaga, o que a tecnologia transforma e o que o coração se recusa a esquecer — um enigma que só se completa quando a última página é escrita.",
         "avaliacoes": [],
-        "selo": "Ebook Disponível R$ 18,00"
+        "selo": "Ebook Disponível ",
+        "precoEbook": "R$ 18,00"
       },
       {
         "titulo": "O Segredo do Solar",
@@ -87,9 +89,9 @@
     "moeda": "R$",
     "tiragemMinima": 10,
     "precoPagina": {
-      "Papel 75g": 1.361,
-      "Papel 90g": 1.3701,
-      "Papel Off White": 1.367
+      "Papel 75g": 0.14,
+      "Papel 90g": 0.17,
+      "Papel Off White": 0.155
     },
     "formato": [
       "A5",
@@ -108,7 +110,7 @@
     },
     "isbn": 51,
     "fichaCatalografica": 82,
-    "direitosAutorais": 0
+    "direitosAutorais": 180
   },
   "contato": {
     "kicker": "05 · Contato",
