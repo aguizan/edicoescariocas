@@ -842,6 +842,152 @@ console.log("Projeto iniciado.");
 
     const orcamentoImpressao = criarOrcamento();
 
+    // ---- Orçamento de conversão para eBook (calculadora) ----
+
+    function criarOrcamentoEbook() {
+        const painel = document.getElementById('orcamento-ebook');
+        const corpo = document.getElementById('orcamento-ebook-corpo');
+        const cfg = C.orcamentoEbook || {};
+        const numWa = (C.contato && C.contato.whatsapp) || '';
+        const simbolo = cfg.moeda || 'R$';
+
+        const elTit = document.getElementById('orcamento-ebook-titulo');
+        if (elTit && cfg.titulo) elTit.textContent = cfg.titulo;
+
+        function fmt(v) { return simbolo + ' ' + (v || 0).toFixed(2).replace('.', ','); }
+
+        function montar() {
+            if (!corpo) return;
+            corpo.innerHTML =
+                '<label class="orc-campo"><span>Título do livro</span>'
+                + '<input type="text" id="orce-titulo" placeholder="Nome da obra"></label>'
+                + '<label class="orc-campo"><span>Formato original do manuscrito</span>'
+                + '<select id="orce-formato"><option value="Word">Word</option><option value="PDF">PDF</option></select></label>'
+                + '<label class="orc-campo"><span>Total de páginas</span>'
+                + '<input type="number" id="orce-paginas" min="0" step="1" value="0"></label>'
+                + '<label class="orc-campo"><span>Número de figuras/imagens</span>'
+                + '<input type="number" id="orce-figuras" min="0" step="1" value="0"></label>'
+                + '<label class="orc-campo"><span>Número de tabelas</span>'
+                + '<input type="number" id="orce-tabelas" min="0" step="1" value="0"></label>'
+                + '<div class="orc-extras-titulo">Serviços extras</div>'
+                + '<label class="orc-check"><input type="checkbox" id="orce-capa"> Criação de capa</label>'
+                + '<label class="orc-check"><input type="checkbox" id="orce-isbn"> ISBN</label>'
+                + '<label class="orc-campo"><span>Desconto (R$) — opcional</span>'
+                + '<input type="number" id="orce-desconto" min="0" step="0.01" value="0"></label>'
+                + '<button type="button" class="orc-btn-calcular" id="orce-calcular">Calcular orçamento</button>'
+                + '<div id="orce-resultado"></div>';
+            const btn = corpo.querySelector('#orce-calcular');
+            if (btn) btn.addEventListener('click', calcular);
+        }
+
+        function coletar() {
+            function val(id) { var e = document.getElementById(id); return e ? e.value : ''; }
+            function num(id) { var e = document.getElementById(id); return e ? (parseFloat(e.value) || 0) : 0; }
+            function marc(id) { var e = document.getElementById(id); return !!(e && e.checked); }
+            return {
+                titulo: val('orce-titulo'),
+                formato: val('orce-formato'),
+                paginas: parseInt(val('orce-paginas'), 10) || 0,
+                figuras: parseInt(val('orce-figuras'), 10) || 0,
+                tabelas: parseInt(val('orce-tabelas'), 10) || 0,
+                capa: marc('orce-capa'),
+                isbn: marc('orce-isbn'),
+                desconto: num('orce-desconto')
+            };
+        }
+
+        function calc(d) {
+            var total = 0;
+            total += (cfg.precoPagina || 0) * d.paginas;
+            total += (cfg.precoFigura || 0) * d.figuras;
+            total += (cfg.precoTabela || 0) * d.tabelas;
+            if (d.capa) total += cfg.capa || 0;
+            if (d.isbn) total += cfg.isbn || 0;
+            total -= (d.desconto || 0);
+            if (total < 0) total = 0;
+            return { total: total };
+        }
+
+        function mensagem(d, r, cliente) {
+            var L = [];
+            if (cliente) {
+                L.push('✅ ORÇAMENTO ACEITO — pedido de conversão para eBook');
+                L.push('');
+                L.push('Nome: ' + (cliente.nome || ''));
+                L.push('E-mail: ' + (cliente.email || ''));
+                L.push('WhatsApp: ' + (cliente.fone || ''));
+                L.push('');
+                L.push('--- Especificações ---');
+            } else {
+                L.push('Olá! Gostaria de um orçamento de conversão de manuscrito para eBook:');
+            }
+            if (d.titulo) L.push('Título: ' + d.titulo);
+            L.push('Formato original do manuscrito: ' + d.formato);
+            L.push('Total de páginas: ' + d.paginas);
+            L.push('Figuras/imagens: ' + d.figuras);
+            L.push('Tabelas: ' + d.tabelas);
+            var extras = [];
+            if (d.capa) extras.push('Criação de capa');
+            if (d.isbn) extras.push('ISBN');
+            L.push('Extras: ' + (extras.length ? extras.join(', ') : 'nenhum'));
+            if (d.desconto) L.push('Desconto: ' + fmt(d.desconto));
+            L.push('');
+            L.push('Entrega em: EPUB e PDF');
+            L.push('Valor total: ' + fmt(r.total));
+            return L.join('\n');
+        }
+
+        var ultimoD = null, ultimoR = null;
+
+        function enviarPedido() {
+            function val(id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; }
+            var cliente = { nome: val('orce-nome'), email: val('orce-email'), fone: val('orce-fone') };
+            if (!cliente.nome) { var n = document.getElementById('orce-nome'); if (n) n.focus(); return; }
+            if (!numWa) return;
+            var url = 'https://wa.me/' + numWa + '?text=' + encodeURIComponent(mensagem(ultimoD, ultimoR, cliente));
+            var a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        function calcular() {
+            ultimoD = coletar();
+            ultimoR = calc(ultimoD);
+            var res = document.getElementById('orce-resultado');
+            if (!res) return;
+            var html = '<div class="orc-total"><span class="valor">' + fmt(ultimoR.total) + '</span>'
+                + '<span class="rotulo">valor total</span></div>';
+            html += '<button type="button" class="orc-btn-aceitar" id="orce-aceitar">Aceitar orçamento</button>';
+            html += '<div id="orce-dados" style="display:none">'
+                + '<div class="orc-extras-titulo">Seus dados</div>'
+                + '<label class="orc-campo"><span>Nome</span><input type="text" id="orce-nome"></label>'
+                + '<label class="orc-campo"><span>E-mail</span><input type="email" id="orce-email"></label>'
+                + '<label class="orc-campo"><span>WhatsApp</span><input type="tel" id="orce-fone" placeholder="(DDD) número"></label>'
+                + '<button type="button" class="orc-whatsapp" id="orce-enviar" style="border:none;cursor:pointer;width:100%">Enviar pedido pelo WhatsApp</button>'
+                + '</div>';
+            res.innerHTML = html;
+            var bAce = document.getElementById('orce-aceitar');
+            if (bAce) bAce.addEventListener('click', function () {
+                var f = document.getElementById('orce-dados');
+                if (f) f.style.display = 'block';
+                bAce.style.display = 'none';
+                var n = document.getElementById('orce-nome'); if (n) n.focus();
+            });
+            var bEnv = document.getElementById('orce-enviar');
+            if (bEnv) bEnv.addEventListener('click', enviarPedido);
+        }
+
+        function abrir() { if (painel) painel.classList.add('ativo'); }
+        function fechar() { if (painel) painel.classList.remove('ativo'); }
+
+        const bf = painel ? painel.querySelector('.fechar-painel') : null;
+        if (bf) bf.addEventListener('click', function (e) { e.stopPropagation(); fechar(); });
+
+        montar();
+        return { abrir: abrir, fechar: fechar };
+    }
+
+    const orcamentoEbook = criarOrcamentoEbook();
+
     // ---- Serviços (carrossel de cards) — dados de conteudo.js ----
 
     const DADOS_SERVICOS = ((C.servicos && C.servicos.itens) || []).map(function (s) {
@@ -862,8 +1008,11 @@ console.log("Projeto iniciado.");
     function abrirServico(item) {
         painelServico.fechar();
         orcamentoImpressao.fechar();
+        orcamentoEbook.fechar();
         if (item.tipo === 'orcamento') {
             orcamentoImpressao.abrir();
+        } else if (item.tipo === 'orcamento-ebook') {
+            orcamentoEbook.abrir();
         } else {
             painelServico.abrir(item);
         }
@@ -1060,6 +1209,7 @@ console.log("Projeto iniciado.");
             painelLivro.fechar();
             painelServico.fechar();
             orcamentoImpressao.fechar();
+            orcamentoEbook.fechar();
             fecharTextoLogo();
         }
     });
@@ -1073,6 +1223,7 @@ console.log("Projeto iniciado.");
             painelLivro.fechar();
             painelServico.fechar();
             orcamentoImpressao.fechar();
+            orcamentoEbook.fechar();
             fecharTextoLogo();
         }
     });

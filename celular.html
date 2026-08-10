@@ -573,12 +573,80 @@ function __montarConteudoMobile(){
     var a=document.createElement('a'); a.href=url; a.target='_blank'; a.rel='noopener';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
   }
+  function orcEbookHTML(){
+    var o=(C.orcamentoEbook)||{};
+    var inp='width:100%;font-size:16px;padding:11px 12px;border:1px solid rgba(26,26,26,.28);border-radius:8px;background:#fff;color:#1a1a1a;font-family:inherit;margin-top:6px';
+    var lab='display:block;margin-top:16px;font-size:14px;color:rgba(26,26,26,.7)';
+    function chk(id,rot){return '<label style="display:flex;align-items:center;gap:10px;margin-top:12px;font-size:16px;color:#1a1a1a"><input type="checkbox" id="'+id+'" style="width:20px;height:20px;flex:0 0 auto"> '+rot+'</label>';}
+    return '<label style="'+lab+'">Título do livro<input type="text" id="orce-titulo" placeholder="Nome da obra" style="'+inp+'"></label>'
+      +'<label style="'+lab+'">Formato original do manuscrito<select id="orce-formato" style="'+inp+'"><option value="Word">Word</option><option value="PDF">PDF</option></select></label>'
+      +'<label style="'+lab+'">Total de páginas<input type="number" id="orce-paginas" min="0" step="1" value="0" style="'+inp+'"></label>'
+      +'<label style="'+lab+'">Número de figuras/imagens<input type="number" id="orce-figuras" min="0" step="1" value="0" style="'+inp+'"></label>'
+      +'<label style="'+lab+'">Número de tabelas<input type="number" id="orce-tabelas" min="0" step="1" value="0" style="'+inp+'"></label>'
+      +'<div style="margin-top:22px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,26,26,.5)">Serviços extras</div>'
+      +chk('orce-capa','Criação de capa')+chk('orce-isbn','ISBN')
+      +'<label style="'+lab+'">Desconto (R$) — opcional<input type="number" id="orce-desconto" min="0" step="0.01" value="0" style="'+inp+'"></label>'
+      +'<button type="button" id="orce-calcular" style="margin-top:22px;width:100%;padding:15px;border:none;border-radius:8px;background:#1a1a1a;color:#f4f4f2;font-size:15px;font-family:inherit;cursor:pointer">Calcular orçamento</button>'
+      +'<div id="orce-resultado"></div>';
+  }
+  function orcEbookCalcular(){
+    var o=(C.orcamentoEbook)||{}, sym=o.moeda||'R$', numWa=(C.contato&&C.contato.whatsapp)||'';
+    function val(id){var e=document.getElementById(id);return e?e.value:'';}
+    function num(id){var e=document.getElementById(id);return e?(parseFloat(e.value)||0):0;}
+    function mk(id){var e=document.getElementById(id);return !!(e&&e.checked);}
+    function fmt(v){return sym+' '+(v||0).toFixed(2).replace('.',',');}
+    var d={titulo:val('orce-titulo'),formato:val('orce-formato'),paginas:parseInt(val('orce-paginas'),10)||0,figuras:parseInt(val('orce-figuras'),10)||0,tabelas:parseInt(val('orce-tabelas'),10)||0,capa:mk('orce-capa'),isbn:mk('orce-isbn'),desconto:num('orce-desconto')};
+    var total=(o.precoPagina||0)*d.paginas+(o.precoFigura||0)*d.figuras+(o.precoTabela||0)*d.tabelas;
+    if(d.capa)total+=o.capa||0; if(d.isbn)total+=o.isbn||0;
+    total-=(d.desconto||0); if(total<0)total=0;
+    window.__ORCE={d:d,total:total,numWa:numWa,fmt:fmt};
+    var res=document.getElementById('orce-resultado'); if(!res)return;
+    var inp='width:100%;font-size:16px;padding:11px 12px;border:1px solid rgba(26,26,26,.28);border-radius:8px;background:#fff;color:#1a1a1a;font-family:inherit;margin-top:6px';
+    var lab='display:block;margin-top:16px;font-size:14px;color:rgba(26,26,26,.7)';
+    var html='<div style="text-align:center;margin-top:22px"><span style="display:block;font-family:\'Instrument Serif\',serif;font-size:40px;color:#1a1a1a">'+fmt(total)+'</span><span style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,26,26,.5)">valor total</span></div>';
+    html+='<button type="button" id="orce-aceitar" style="margin-top:16px;width:100%;padding:15px;border:none;border-radius:8px;background:#25d366;color:#fff;font-size:15px;font-family:inherit;cursor:pointer">Aceitar orçamento</button>';
+    html+='<div id="orce-dados" style="display:none">'
+      +'<div style="margin-top:22px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,26,26,.5)">Seus dados</div>'
+      +'<label style="'+lab+'">Nome<input type="text" id="orce-nome" style="'+inp+'"></label>'
+      +'<label style="'+lab+'">E-mail<input type="email" id="orce-email" style="'+inp+'"></label>'
+      +'<label style="'+lab+'">WhatsApp<input type="tel" id="orce-fone" placeholder="(DDD) número" style="'+inp+'"></label>'
+      +'<button type="button" id="orce-enviar" style="margin-top:18px;width:100%;padding:15px;border:none;border-radius:8px;background:#25d366;color:#fff;font-size:15px;font-family:inherit;cursor:pointer">Enviar pedido pelo WhatsApp</button>'
+      +'</div>';
+    res.innerHTML=html;
+    var bAce=document.getElementById('orce-aceitar');
+    if(bAce)bAce.addEventListener('click',function(){var f=document.getElementById('orce-dados');if(f)f.style.display='block';bAce.style.display='none';var n=document.getElementById('orce-nome');if(n)n.focus();});
+    var bEnv=document.getElementById('orce-enviar');
+    if(bEnv)bEnv.addEventListener('click',orcEbookEnviar);
+  }
+  function orcEbookEnviar(){
+    var O=window.__ORCE; if(!O)return;
+    function v(id){var e=document.getElementById(id);return e?e.value.trim():'';}
+    var cli={nome:v('orce-nome'),email:v('orce-email'),fone:v('orce-fone')};
+    if(!cli.nome){var n=document.getElementById('orce-nome');if(n)n.focus();return;}
+    if(!O.numWa)return;
+    var d=O.d;
+    var L=['✅ ORÇAMENTO ACEITO — pedido de conversão para eBook','','Nome: '+cli.nome,'E-mail: '+cli.email,'WhatsApp: '+cli.fone,'','--- Especificações ---'];
+    if(d.titulo)L.push('Título: '+d.titulo);
+    L.push('Formato original do manuscrito: '+d.formato,'Total de páginas: '+d.paginas,'Figuras/imagens: '+d.figuras,'Tabelas: '+d.tabelas);
+    var ex=[]; if(d.capa)ex.push('Criação de capa'); if(d.isbn)ex.push('ISBN');
+    L.push('Extras: '+(ex.length?ex.join(', '):'nenhum'));
+    if(d.desconto)L.push('Desconto: '+O.fmt(d.desconto));
+    L.push('','Entrega em: EPUB e PDF','Valor total: '+O.fmt(O.total));
+    var url='https://wa.me/'+O.numWa+'?text='+encodeURIComponent(L.join('\n'));
+    var a=document.createElement('a'); a.href=url; a.target='_blank'; a.rel='noopener';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }
+
   function abrirServico(i){
     var it=(window.__SERVICOS||[])[i]; if(!it) return;
     if(it.tipo==='orcamento'){
       var tit=(C.orcamento&&C.orcamento.titulo)||it.titulo;
       set('pb-svc','<div class="kicker" style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:rgba(26,26,26,.5);margin-bottom:10px">'+esc((C.servicos&&C.servicos.kicker)||'')+'</div><h1 style="font-size:34px;margin-bottom:4px">'+esc(tit)+'</h1>'+orcHTML());
       var b=document.getElementById('orc-calcular'); if(b) b.addEventListener('click',orcCalcular);
+    } else if(it.tipo==='orcamento-ebook'){
+      var tite=(C.orcamentoEbook&&C.orcamentoEbook.titulo)||it.titulo;
+      set('pb-svc','<div class="kicker" style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:rgba(26,26,26,.5);margin-bottom:10px">'+esc((C.servicos&&C.servicos.kicker)||'')+'</div><h1 style="font-size:34px;margin-bottom:4px">'+esc(tite)+'</h1>'+orcEbookHTML());
+      var be=document.getElementById('orce-calcular'); if(be) be.addEventListener('click',orcEbookCalcular);
     } else {
       var st=it.capa?'background-image:url('+esc(it.capa)+');background-size:cover;background-position:center':'';
       var desc=String(it.descricao||'').split('\n').filter(function(x){return x.trim();}).map(function(t){return '<p class="lead" style="margin-top:14px">'+esc(t)+'</p>';}).join('');
