@@ -192,8 +192,8 @@ async function editarLivro(id) {
 
 async function excluirLivro(id, titulo) {
   if (!confirm('Excluir "' + titulo + '"? Essa ação não pode ser desfeita.')) return;
-  const { error } = await sb.from('livros').delete().eq('id', id);
-  if (error) { alert('Erro ao excluir: ' + error.message); return; }
+  const { error, count } = await sb.from('livros').delete().eq('id', id).select();
+  if (error) { alert('Erro ao excluir: ' + error.message); console.error(error); return; }
   carregarLivros();
 }
 
