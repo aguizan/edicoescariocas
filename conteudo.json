@@ -33,7 +33,7 @@
         "formato": "E-book e Físico",
         "preco": "R$ 54,00",
         "precoEbook": "R$ 18,00",
-        "selo": "",
+        "selo": "Ebook Disponível.",
         "sinopse": "No Rio de Janeiro de 1958, enquanto o rádio anunciava o primeiro título mundial e a Bossa Nova surgia como um sussurro nas janelas de Copacabana, um menino começava a desenhar sua própria história. Entre o barulho dos bondes que partiam e o silêncio dos novos edifícios que subiam, ele cresceu observando a alma de uma cidade em constante metamorfose.\n\nEm um relato que cruza décadas, este livro é uma arqueologia dos afetos. Das mãos do avô que “sabiam pensar” às ladeiras de pedra da Praça XV, acompanhamos uma trajetória que sobrevive entre o concreto e a saudade. Uma obra sobre o que o tempo apaga, o que a tecnologia transforma e o que o coração se recusa a esquecer — um enigma que só se completa quando a última página é escrita.",
         "avaliacoes": []
       },
@@ -69,18 +69,17 @@
       {
         "titulo": "Análise Crítica",
         "capa": "",
-        "descricao": "Descrição completa do serviço 2."
+        "descricao": "Em breve"
       },
       {
         "titulo": "Conversão / Ebook",
         "capa": "",
-        "tipo": "orcamento-ebook",
-        "descricao": "Faça o orçamento da conversão do seu manuscrito (EPUB ou PDF) para eBook. Informe páginas, figuras e tabelas — o valor total aparece na hora, e você pode enviar o pedido direto pelo WhatsApp."
+        "descricao": "Em breve"
       },
       {
         "titulo": "Clube de Leitura",
         "capa": "",
-        "descricao": "Descrição completa do Clube de Leitura."
+        "descricao": "Em breve"
       }
     ]
   },
@@ -122,10 +121,10 @@
   "orcamentoEbook": {
     "titulo": "Orçamento de conversão para eBook",
     "moeda": "R$",
-    "precoPagina": 1,
-    "precoFigura": 1,
-    "precoTabela": 1,
-    "capa": 1,
-    "isbn": 1
+    "precoPagina": 0.6,
+    "precoFigura": 3,
+    "precoTabela": 10,
+    "capa": 300,
+    "isbn": 51
   }
 }
