@@ -211,10 +211,12 @@ async function carregarLivros() {
       + '<h3>' + l.titulo + '<span class="tag">' + l.status + '</span></h3>'
       + '<div class="meta">' + autor + (precos.length ? ' · ' + precos.join(' · ') : '') + '</div>'
       + '<div class="linha-acoes-lista">'
-      + '<button onclick="editarLivro(\'' + l.id + '\')">Editar</button>'
-      + '<button class="perigo" style="color:#a11" onclick="excluirLivro(\'' + l.id + '\', ' + JSON.stringify(l.titulo) + ')">Excluir</button>'
+      + '<button data-editar="' + l.id + '">Editar</button>'
+      + '<button class="perigo" style="color:#a11" data-excluir="' + l.id + '" data-titulo="' + l.titulo.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;') + '">Excluir</button>'
       + '</div></div>';
   }).join('');
+  lista.querySelectorAll('[data-editar]').forEach(b => b.addEventListener('click', () => editarLivro(b.getAttribute('data-editar'))));
+  lista.querySelectorAll('[data-excluir]').forEach(b => b.addEventListener('click', () => excluirLivro(b.getAttribute('data-excluir'), b.getAttribute('data-titulo'))));
 }
 
 verificarSessao();
