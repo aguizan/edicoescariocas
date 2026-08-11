@@ -345,7 +345,37 @@ fetch('conteudo.json').then(function(r){return r.json();}).then(function(dados){
 })();
 </script>
 <script>
-function __montarConteudoMobile(){
+const SUPABASE_URL_MOBILE = 'https://sesmrschobtglcqxvkyb.supabase.co';
+const SUPABASE_KEY_MOBILE = 'sb_publishable_c4-E0NfPcHXTm3L0p-Zi_g_Fy7RwQya';
+function __mapLivroSupabase(l){
+  var temFisico=!!l.preco_fisico, temEbook=!!l.preco_ebook;
+  return {
+    titulo: l.titulo||'', autor: (l.autores&&l.autores.nome)||'', capa: l.capa_url||'',
+    formato: temFisico&&temEbook?'Físico e E-book':(temEbook?'E-book':'Físico'),
+    preco: l.preco_fisico?('R$ '+Number(l.preco_fisico).toFixed(2).replace('.',',')):'',
+    precoEbook: l.preco_ebook?('R$ '+Number(l.preco_ebook).toFixed(2).replace('.',',')):'',
+    selo: l.selo||(l.status==='esgotado'?'Esgotado':(l.status==='em_breve'?'Em breve':'')),
+    sinopse: l.sinopse||'', avaliacoes: Array.isArray(l.avaliacoes)?l.avaliacoes:[]
+  };
+}
+async function __buscarLivrosSupabase(reserva){
+  try{
+    var resp = await fetch(SUPABASE_URL_MOBILE+'/rest/v1/livros?select=*,autores(nome)&status=in.(publicado,esgotado,em_breve)&order=criado_em.desc', {
+      headers: { apikey: SUPABASE_KEY_MOBILE, Authorization: 'Bearer '+SUPABASE_KEY_MOBILE }
+    });
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    var dados = await resp.json();
+    if(!Array.isArray(dados)) throw new Error('resposta inesperada');
+    console.log('[livros] carregados do Supabase:', dados.length);
+    return dados.map(__mapLivroSupabase);
+  } catch(e){
+    console.warn('[livros] falha ao buscar do Supabase, usando conteudo.json como reserva.', e);
+    return reserva;
+  }
+}
+</script>
+<script>
+async function __montarConteudoMobile(){
   var C = window.CONTEUDO;
   if(!C){ console.warn('conteudo.json não carregou — as placas ficarão vazias.'); return; }
   function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -369,7 +399,7 @@ function __montarConteudoMobile(){
   }
   if(C.publicacoes){
     var p=C.publicacoes;
-    window.__LIVROS = p.livros||[];
+    window.__LIVROS = await __buscarLivrosSupabase(p.livros||[]);
     var cards=window.__LIVROS.map(function(l,idx){
       var st=l.capa?'background-image:url('+esc(l.capa)+');background-size:cover;background-position:center':'';
       var avals=Array.isArray(l.avaliacoes)?l.avaliacoes:[];

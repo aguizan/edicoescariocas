@@ -614,16 +614,37 @@ console.log("Projeto iniciado.");
         return { abrir: abrir, fechar: fechar };
     }
 
-    // ---- Publicações (carrossel de livros) — dados de conteudo.js ----
+    // ---- Publicações (carrossel de livros) — vem do Supabase (produção),
+    // com fallback para conteudo.json se a leitura do banco falhar.
 
-    const DADOS_LIVROS = ((C.publicacoes && C.publicacoes.livros) || []).map(function (l) {
+    const SUPABASE_URL = 'https://sesmrschobtglcqxvkyb.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_c4-E0NfPcHXTm3L0p-Zi_g_Fy7RwQya';
+
+    function mapLivroParaItem(l) {
         const numWa = (C.contato && C.contato.whatsapp) || '';
-        const preco = l.preco || '';
-        const formato = (l.formato || '').trim();
-        const emBreve = /^em breve/i.test(formato);
+        // Aceita tanto o formato do Supabase (preco_fisico/preco_ebook/status)
+        // quanto o antigo do conteudo.json (formato/preco/precoEbook), para
+        // funcionar com os dois durante a transição.
+        const doSupabase = l.preco_fisico !== undefined || l.status !== undefined;
+        let formato, preco, precoEbook, emBreve, selo;
+        if (doSupabase) {
+            const temFisico = !!l.preco_fisico;
+            const temEbook = !!l.preco_ebook;
+            formato = temFisico && temEbook ? 'Físico e E-book' : (temEbook ? 'E-book' : 'Físico');
+            preco = l.preco_fisico ? 'R$ ' + Number(l.preco_fisico).toFixed(2).replace('.', ',') : '';
+            precoEbook = l.preco_ebook ? 'R$ ' + Number(l.preco_ebook).toFixed(2).replace('.', ',') : '';
+            emBreve = l.status === 'em_breve';
+            selo = l.selo || (l.status === 'esgotado' ? 'Esgotado' : '');
+        } else {
+            formato = (l.formato || '').trim();
+            preco = l.preco || '';
+            precoEbook = l.precoEbook || '';
+            emBreve = /^em breve/i.test(formato);
+            selo = l.selo || '';
+        }
         const ehFisico = /f[íi]sico/i.test(formato);
         const soEbookMsg = /e-?book/i.test(formato) && !ehFisico;
-        const precoMsg = soEbookMsg ? (l.precoEbook || l.preco || '') : preco;
+        const precoMsg = soEbookMsg ? (precoEbook || preco || '') : preco;
         let msg = 'Olá! Tenho interesse no livro "' + (l.titulo || '') + '"'
             + (formato ? ' (' + formato + (precoMsg ? ' — ' + precoMsg : '') + ')' : '') + '.\n\nQuantidade: \n';
         msg += ehFisico
@@ -633,37 +654,61 @@ console.log("Projeto iniciado.");
         const media = avals.length ? (avals.reduce(function (s, a) { return s + (Number(a.nota) || 0); }, 0) / avals.length) : 0;
         return {
             titulo: l.titulo || '',
-            autor: l.autor || '',
-            capa: l.capa || '',
+            autor: (l.autores && l.autores.nome) || l.autor || '',
+            capa: l.capa_url || l.capa || '',
             texto: l.sinopse || '',
             formato: formato,
             preco: preco,
-        precoEbook: l.precoEbook || '',
-            selo: l.selo || '',
+            precoEbook: precoEbook,
+            selo: selo,
             emBreve: emBreve,
             whatsappLink: (!emBreve && numWa) ? 'https://wa.me/' + numWa + '?text=' + encodeURIComponent(msg) : '',
             avaliacoes: avals,
             mediaNota: media,
             numWaAvaliacao: numWa
         };
-    });
+    }
 
-    const painelLivro = criarPainelDetalhe('detalhe-livro', {
-        capa: 'detalhe-livro-capa',
-        titulo: 'detalhe-livro-titulo',
-        texto: 'detalhe-livro-sinopse',
-        avaliacoes: 'detalhe-livro-avaliacoes',
-        vendas: 'detalhe-livro-vendas',
-        link: 'detalhe-livro-link',
-    });
+    async function buscarLivros() {
+        try {
+            const resp = await fetch(SUPABASE_URL + '/rest/v1/livros?select=*,autores(nome)&status=in.(publicado,esgotado,em_breve)&order=criado_em.desc', {
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+            });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const dados = await resp.json();
+            if (!Array.isArray(dados)) throw new Error('resposta inesperada');
+            console.log('[livros] carregados do Supabase:', dados.length);
+            return dados;
+        } catch (e) {
+            console.warn('[livros] falha ao buscar do Supabase, usando conteudo.json como reserva.', e);
+            return (C.publicacoes && C.publicacoes.livros) || [];
+        }
+    }
 
-    const carrosselPublicacoes = criarCarrossel({
-        botaoId: 'btn-publicacoes',
-        faixaId: 'faixa-publicacoes',
-        trilhoId: 'trilho-carrossel',
-        dados: DADOS_LIVROS,
-        aoClicarItem: painelLivro.abrir,
-    });
+    (async function iniciarPublicacoes() {
+        const brutos = await buscarLivros();
+        const DADOS_LIVROS = brutos.map(mapLivroParaItem);
+
+        const painelLivro = criarPainelDetalhe('detalhe-livro', {
+            capa: 'detalhe-livro-capa',
+            titulo: 'detalhe-livro-titulo',
+            texto: 'detalhe-livro-sinopse',
+            avaliacoes: 'detalhe-livro-avaliacoes',
+            vendas: 'detalhe-livro-vendas',
+            link: 'detalhe-livro-link',
+        });
+
+        const carrosselPublicacoes = criarCarrossel({
+            botaoId: 'btn-publicacoes',
+            faixaId: 'faixa-publicacoes',
+            trilhoId: 'trilho-carrossel',
+            dados: DADOS_LIVROS,
+            aoClicarItem: painelLivro.abrir,
+        });
+
+        window.__painelLivro = painelLivro;
+        window.__carrosselPublicacoes = carrosselPublicacoes;
+    })();
 
     // ---- Orçamento de impressão (calculadora) — dados de conteudo.js ----
 
@@ -1204,9 +1249,9 @@ console.log("Projeto iniciado.");
         const cliqueEmGatilhoLogo = evento.target.closest('#gatilho-logo');
         if (!cliqueDentroDePainel && !cliqueDentroDaFaixa && !cliqueEmHotspot && !cliqueEmGatilhoLogo) {
             fecharTodosPaineis();
-            carrosselPublicacoes.fechar();
+            if (window.__carrosselPublicacoes) window.__carrosselPublicacoes.fechar();
             carrosselServicos.fechar();
-            painelLivro.fechar();
+            if (window.__painelLivro) window.__painelLivro.fechar();
             painelServico.fechar();
             orcamentoImpressao.fechar();
             orcamentoEbook.fechar();
@@ -1218,9 +1263,9 @@ console.log("Projeto iniciado.");
     document.addEventListener('keydown', function (evento) {
         if (evento.key === 'Escape') {
             fecharTodosPaineis();
-            carrosselPublicacoes.fechar();
+            if (window.__carrosselPublicacoes) window.__carrosselPublicacoes.fechar();
             carrosselServicos.fechar();
-            painelLivro.fechar();
+            if (window.__painelLivro) window.__painelLivro.fechar();
             painelServico.fechar();
             orcamentoImpressao.fechar();
             orcamentoEbook.fechar();
