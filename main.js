@@ -452,27 +452,56 @@ console.log("Projeto iniciado.");
         } else {
             html += '<p style="font-size:13px;color:#6b7683;margin-bottom:8px;">Ainda sem avaliações.</p>';
         }
+        if (!item.id) {
+            html += '</div>';
+            return html;
+        }
         html += '<button type="button" class="btn-avaliar" style="font-style:normal;font-size:13px;background:none;border:none;color:#2c3e50;text-decoration:underline;cursor:pointer;padding:0;">Avaliar este livro</button>';
         html += '<div class="form-avaliar" style="display:none;margin-top:10px;">'
             + '<div style="font-size:20px;letter-spacing:4px;color:#e8a33d;cursor:pointer;margin-bottom:6px;">'
             + [0, 1, 2, 3, 4].map(function () { return '<span class="estrela-input">☆</span>'; }).join('')
             + '</div>'
+            + '<input type="tel" class="input-celular-avaliacao" placeholder="Seu celular (com DDD)" style="width:100%;font-family:sans-serif;font-size:13px;padding:6px;border:1px solid #ccc;border-radius:4px;margin-bottom:6px;">'
             + '<input type="text" class="input-nome-avaliacao" placeholder="Seu nome" style="width:100%;font-family:sans-serif;font-size:13px;padding:6px;border:1px solid #ccc;border-radius:4px;margin-bottom:6px;">'
+            + '<input type="number" class="input-idade-avaliacao" placeholder="Idade" min="1" max="120" style="width:100%;font-family:sans-serif;font-size:13px;padding:6px;border:1px solid #ccc;border-radius:4px;margin-bottom:6px;">'
+            + '<input type="text" class="input-estado-avaliacao" placeholder="Estado (UF)" maxlength="2" style="width:100%;font-family:sans-serif;font-size:13px;padding:6px;border:1px solid #ccc;border-radius:4px;margin-bottom:6px;text-transform:uppercase">'
             + '<textarea class="input-comentario-avaliacao" placeholder="Comentário (opcional)" rows="2" style="width:100%;font-family:sans-serif;font-size:13px;padding:6px;border:1px solid #ccc;border-radius:4px;margin-bottom:6px;"></textarea>'
-            + '<button type="button" class="btn-enviar-avaliacao" style="font-style:normal;font-size:13px;color:#fff;background:#25d366;border:none;padding:8px 14px;border-radius:4px;cursor:pointer;">Enviar avaliação pelo WhatsApp</button>'
+            + '<button type="button" class="btn-enviar-avaliacao" style="font-style:normal;font-size:13px;color:#fff;background:#25d366;border:none;padding:8px 14px;border-radius:4px;cursor:pointer;">Enviar avaliação</button>'
+            + '<div class="erro-avaliacao" style="color:#a11;font-size:12px;margin-top:6px;"></div>'
             + '</div>';
         html += '</div>';
         return html;
     }
 
-    function enviarAvaliacao(elAval, item) {
+    async function enviarAvaliacao(elAval, item) {
         const nota = Number(elAval.dataset.notaSelecionada || 0);
+        const celular = (elAval.querySelector('.input-celular-avaliacao').value || '').replace(/\D/g, '');
         const nome = (elAval.querySelector('.input-nome-avaliacao').value || '').trim();
+        const idade = parseInt(elAval.querySelector('.input-idade-avaliacao').value, 10) || null;
+        const estado = (elAval.querySelector('.input-estado-avaliacao').value || '').trim().toUpperCase();
         const comentario = (elAval.querySelector('.input-comentario-avaliacao').value || '').trim();
-        if (!nota || !nome) { alert('Escolha uma nota e informe seu nome.'); return; }
-        if (!item.numWaAvaliacao) return;
-        const msg = 'Avaliação do livro "' + item.titulo + '":\nNota: ' + nota + '/5\nNome: ' + nome + (comentario ? '\nComentário: ' + comentario : '');
+        const erroEl = elAval.querySelector('.erro-avaliacao');
+        if (erroEl) erroEl.textContent = '';
+        if (!celular || celular.length < 10) { if (erroEl) erroEl.textContent = 'Informe um celular válido (com DDD).'; return; }
+        if (!nome) { if (erroEl) erroEl.textContent = 'Informe seu nome.'; return; }
+        if (!nota) { if (erroEl) erroEl.textContent = 'Escolha uma nota (estrelas).'; return; }
+        if (!item.numWaAvaliacao || !item.id || !sbClient) return;
+
+        const { data: leitor, error: erroLeitor } = await sbClient.from('leitores')
+            .upsert({ celular: celular, nome: nome, idade: idade, estado: estado }, { onConflict: 'celular' })
+            .select().single();
+        if (erroLeitor || !leitor) { if (erroEl) erroEl.textContent = 'Erro ao salvar cadastro: ' + (erroLeitor ? erroLeitor.message : ''); return; }
+
+        const { error: erroAval } = await sbClient.from('avaliacoes').insert({
+            livro_id: item.id, leitor_id: leitor.id, nome: nome, nota: nota, comentario: comentario, status: 'pendente'
+        });
+        if (erroAval) { if (erroEl) erroEl.textContent = 'Erro ao enviar avaliação: ' + erroAval.message; return; }
+
+        const msg = 'Nova avaliação recebida:\nLivro: ' + item.titulo + '\nNota: ' + nota + '/5\nNome: ' + nome
+            + (comentario ? '\nComentário: ' + comentario : '') + '\n\n(fica pendente até aprovação no admin)';
         window.open('https://wa.me/' + item.numWaAvaliacao + '?text=' + encodeURIComponent(msg), '_blank');
+        const formEl = elAval.querySelector('.form-avaliar');
+        if (formEl) formEl.innerHTML = '<p style="color:#1a7a1a;font-size:13px;">Avaliação enviada! Obrigado.</p>';
     }
 
     function criarPainelDetalhe(painelId, camposIds) {
@@ -619,6 +648,7 @@ console.log("Projeto iniciado.");
 
     const SUPABASE_URL = 'https://sesmrschobtglcqxvkyb.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_c4-E0NfPcHXTm3L0p-Zi_g_Fy7RwQya';
+    const sbClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
     function mapLivroParaItem(l) {
         const numWa = (C.contato && C.contato.whatsapp) || '';
@@ -650,9 +680,12 @@ console.log("Projeto iniciado.");
         msg += ehFisico
             ? 'Endereço completo para envio (rua, número, complemento, bairro, cidade/UF e CEP): '
             : 'Meu e-mail para receber o e-book: ';
-        const avals = Array.isArray(l.avaliacoes) ? l.avaliacoes : [];
+        const avals = Array.isArray(l.avaliacoes) ? l.avaliacoes.map(function (a) {
+            return { nota: a.nota, comentario: a.comentario, nome: (a.leitores && a.leitores.nome) || a.nome || 'Leitor' };
+        }) : [];
         const media = avals.length ? (avals.reduce(function (s, a) { return s + (Number(a.nota) || 0); }, 0) / avals.length) : 0;
         return {
+            id: l.id || '',
             titulo: l.titulo || '',
             autor: (l.autores && l.autores.nome) || l.autor || '',
             capa: l.capa_url || l.capa || '',
@@ -671,7 +704,7 @@ console.log("Projeto iniciado.");
 
     async function buscarLivros() {
         try {
-            const resp = await fetch(SUPABASE_URL + '/rest/v1/livros?select=*,autores(nome)&status=in.(publicado,esgotado,em_breve)&order=criado_em.desc', {
+            const resp = await fetch(SUPABASE_URL + '/rest/v1/livros?select=*,autores(nome),avaliacoes(nota,comentario,leitores(nome))&avaliacoes.status=eq.aprovada&status=in.(publicado,esgotado,em_breve)&order=criado_em.desc', {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
             });
             if (!resp.ok) throw new Error('HTTP ' + resp.status);

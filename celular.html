@@ -76,6 +76,7 @@ fetch('conteudo.json').then(function(r){return r.json();}).then(function(dados){
     document.dispatchEvent(new Event('conteudo-pronto'));
 });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="app">
@@ -334,7 +335,8 @@ fetch('conteudo.json').then(function(r){return r.json();}).then(function(dados){
   // (paisagem, tablet largo ou desktop) — onde a versão principal funciona melhor.
   var consulta = window.matchMedia('(max-aspect-ratio: 4/5)');
   function verificar(e) {
-      if (!e.matches) window.location.replace('index.html');
+      // Redirecionamento desativado nesta cópia de teste (dev-supabase) para
+      // permitir visualizar o layout mobile em qualquer tamanho de tela.
   }
   verificar(consulta); // checa também no carregamento, não só ao girar
   if (consulta.addEventListener) {
@@ -347,20 +349,22 @@ fetch('conteudo.json').then(function(r){return r.json();}).then(function(dados){
 <script>
 const SUPABASE_URL_MOBILE = 'https://sesmrschobtglcqxvkyb.supabase.co';
 const SUPABASE_KEY_MOBILE = 'sb_publishable_c4-E0NfPcHXTm3L0p-Zi_g_Fy7RwQya';
+const sbClientMobile = window.supabase ? window.supabase.createClient(SUPABASE_URL_MOBILE, SUPABASE_KEY_MOBILE) : null;
 function __mapLivroSupabase(l){
   var temFisico=!!l.preco_fisico, temEbook=!!l.preco_ebook;
   return {
-    titulo: l.titulo||'', autor: (l.autores&&l.autores.nome)||'', capa: l.capa_url||'',
+    id: l.id||'', titulo: l.titulo||'', autor: (l.autores&&l.autores.nome)||'', capa: l.capa_url||'',
     formato: temFisico&&temEbook?'Físico e E-book':(temEbook?'E-book':'Físico'),
     preco: l.preco_fisico?('R$ '+Number(l.preco_fisico).toFixed(2).replace('.',',')):'',
     precoEbook: l.preco_ebook?('R$ '+Number(l.preco_ebook).toFixed(2).replace('.',',')):'',
     selo: l.selo||(l.status==='esgotado'?'Esgotado':(l.status==='em_breve'?'Em breve':'')),
-    sinopse: l.sinopse||'', avaliacoes: Array.isArray(l.avaliacoes)?l.avaliacoes:[]
+    sinopse: l.sinopse||'',
+    avaliacoes: Array.isArray(l.avaliacoes)?l.avaliacoes.map(function(a){ return {nota:a.nota, comentario:a.comentario, nome:(a.leitores&&a.leitores.nome)||'Leitor'}; }):[]
   };
 }
 async function __buscarLivrosSupabase(reserva){
   try{
-    var resp = await fetch(SUPABASE_URL_MOBILE+'/rest/v1/livros?select=*,autores(nome)&status=in.(publicado,esgotado,em_breve)&order=criado_em.desc', {
+    var resp = await fetch(SUPABASE_URL_MOBILE+'/rest/v1/livros?select=*,autores(nome),avaliacoes(nota,comentario,leitores(nome))&avaliacoes.status=eq.aprovada&status=in.(publicado,esgotado,em_breve)&order=criado_em.desc', {
       headers: { apikey: SUPABASE_KEY_MOBILE, Authorization: 'Bearer '+SUPABASE_KEY_MOBILE }
     });
     if(!resp.ok) throw new Error('HTTP '+resp.status);
@@ -482,9 +486,13 @@ async function __montarConteudoMobile(){
     html+='<button type="button" class="btn-avaliar" style="font-size:14px;background:none;border:none;color:#1a1a1a;text-decoration:underline;cursor:pointer;padding:0">Avaliar este livro</button>';
     html+='<div class="form-avaliar" style="display:none;margin-top:10px">'+
       '<div style="font-size:26px;letter-spacing:6px;color:#e8a33d;cursor:pointer;margin-bottom:8px">'+[0,1,2,3,4].map(function(){return '<span class="estrela-input">☆</span>';}).join('')+'</div>'+
+      '<input type="tel" class="input-celular-avaliacao" placeholder="Seu celular (com DDD)" style="width:100%;font-size:16px;padding:11px 12px;border:1px solid rgba(26,26,26,.28);border-radius:8px;background:#fff;color:#1a1a1a;margin-bottom:8px">'+
       '<input type="text" class="input-nome-avaliacao" placeholder="Seu nome" style="width:100%;font-size:16px;padding:11px 12px;border:1px solid rgba(26,26,26,.28);border-radius:8px;background:#fff;color:#1a1a1a;margin-bottom:8px">'+
+      '<input type="number" class="input-idade-avaliacao" placeholder="Idade" min="1" max="120" style="width:100%;font-size:16px;padding:11px 12px;border:1px solid rgba(26,26,26,.28);border-radius:8px;background:#fff;color:#1a1a1a;margin-bottom:8px">'+
+      '<input type="text" class="input-estado-avaliacao" placeholder="Estado (UF)" maxlength="2" style="width:100%;font-size:16px;padding:11px 12px;border:1px solid rgba(26,26,26,.28);border-radius:8px;background:#fff;color:#1a1a1a;margin-bottom:8px;text-transform:uppercase">'+
       '<textarea class="input-comentario-avaliacao" placeholder="Comentário (opcional)" rows="3" style="width:100%;font-size:16px;padding:11px 12px;border:1px solid rgba(26,26,26,.28);border-radius:8px;background:#fff;color:#1a1a1a;margin-bottom:8px"></textarea>'+
-      '<button type="button" class="btn-enviar-avaliacao" style="width:100%;padding:15px;border:none;border-radius:8px;background:#25d366;color:#fff;font-size:15px;font-family:inherit;cursor:pointer">Enviar avaliação pelo WhatsApp</button>'+
+      '<button type="button" class="btn-enviar-avaliacao" style="width:100%;padding:15px;border:none;border-radius:8px;background:#25d366;color:#fff;font-size:15px;font-family:inherit;cursor:pointer">Enviar avaliação</button>'+
+      '<div class="erro-avaliacao" style="color:#a11;font-size:12px;margin-top:6px"></div>'+
       '</div></div>';
     return html;
   }
@@ -504,13 +512,30 @@ async function __montarConteudoMobile(){
     var formAvaliar=pb.querySelector('.form-avaliar');
     if(btnAvaliar&&formAvaliar) btnAvaliar.addEventListener('click',function(){ formAvaliar.style.display = formAvaliar.style.display==='none'?'block':'none'; });
     var btnEnviar=pb.querySelector('.btn-enviar-avaliacao');
-    if(btnEnviar) btnEnviar.addEventListener('click',function(){
+    if(btnEnviar) btnEnviar.addEventListener('click',async function(){
+      var erroEl=pb.querySelector('.erro-avaliacao'); if(erroEl) erroEl.textContent='';
+      var celular=(pb.querySelector('.input-celular-avaliacao').value||'').replace(/\D/g,'');
       var nome=(pb.querySelector('.input-nome-avaliacao').value||'').trim();
+      var idade=parseInt(pb.querySelector('.input-idade-avaliacao').value,10)||null;
+      var estado=(pb.querySelector('.input-estado-avaliacao').value||'').trim().toUpperCase();
       var comentario=(pb.querySelector('.input-comentario-avaliacao').value||'').trim();
-      if(!notaSel||!nome){ alert('Escolha uma nota e informe seu nome.'); return; }
-      if(!num) return;
-      var msg='Avaliação do livro "'+l.titulo+'":\nNota: '+notaSel+'/5\nNome: '+nome+(comentario?'\nComentário: '+comentario:'');
-      window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+      if(!celular||celular.length<10){ if(erroEl) erroEl.textContent='Informe um celular válido (com DDD).'; return; }
+      if(!nome){ if(erroEl) erroEl.textContent='Informe seu nome.'; return; }
+      if(!notaSel){ if(erroEl) erroEl.textContent='Escolha uma nota (estrelas).'; return; }
+      if(!num||!l.id||!sbClientMobile) return;
+      try{
+        const { data: leitor, error: erroLeitor } = await sbClientMobile.from('leitores')
+          .upsert({ celular: celular, nome: nome, idade: idade, estado: estado }, { onConflict: 'celular' })
+          .select().single();
+        if(erroLeitor||!leitor){ if(erroEl) erroEl.textContent='Erro ao salvar cadastro.'; return; }
+        const { error: erroAval } = await sbClientMobile.from('avaliacoes').insert({
+          livro_id: l.id, leitor_id: leitor.id, nome: nome, nota: notaSel, comentario: comentario, status: 'pendente'
+        });
+        if(erroAval){ if(erroEl) erroEl.textContent='Erro ao enviar avaliação.'; return; }
+        var msg='Nova avaliação recebida:\nLivro: '+l.titulo+'\nNota: '+notaSel+'/5\nNome: '+nome+(comentario?'\nComentário: '+comentario:'')+'\n\n(fica pendente até aprovação no admin)';
+        window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+        formAvaliar.innerHTML='<p style="color:#1a7a1a;font-size:14px">Avaliação enviada! Obrigado.</p>';
+      }catch(e){ if(erroEl) erroEl.textContent='Erro de conexão.'; }
     });
   }
 
