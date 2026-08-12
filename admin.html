@@ -17,7 +17,6 @@
   button{cursor:pointer;font-family:inherit}
   .btn{padding:10px 18px;border:none;border-radius:6px;background:#1a1a1a;color:#fff;font-size:14px;margin-top:14px}
   .btn.secundario{background:#eee;color:#1a1a1a}
-  .btn.perigo{background:#a11}
   .erro{color:#a11;font-size:13px;margin-top:8px}
   .barra{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
   .sair{font-size:13px;color:#666;background:none;border:none;text-decoration:underline}
@@ -28,6 +27,11 @@
   .cartao .linha-acoes-lista button{padding:7px 12px;border-radius:5px;border:1px solid #ccc;background:#fff;font-size:13px}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;background:#eee;margin-left:6px}
+  .abas{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid #e2ddd4}
+  .aba{padding:10px 18px;background:none;border:none;font-family:inherit;font-size:14px;color:#888;cursor:pointer;border-bottom:2px solid transparent}
+  .aba.ativa{color:#1a1a1a;border-bottom-color:#1a1a1a;font-weight:bold}
+  .secao{display:none}
+  .secao.ativa{display:block}
 </style>
 </head>
 <body>
@@ -44,48 +48,59 @@
 
 <div id="painel">
   <div class="barra">
-    <h1>Livros</h1>
+    <h1>Admin</h1>
     <button class="sair" id="btn-sair">Sair</button>
   </div>
 
-  <div class="cartao">
-    <h3 id="form-titulo">Novo livro</h3>
-    <input type="hidden" id="livro-id">
-    <label>Título<input type="text" id="f-titulo"></label>
-    <label>Subtítulo<input type="text" id="f-subtitulo"></label>
-    <div class="grid2">
-      <label>Autor
-        <select id="f-autor"></select>
-      </label>
-      <label>Status
-        <select id="f-status">
-          <option value="rascunho">Rascunho</option>
-          <option value="publicado">Publicado</option>
-          <option value="esgotado">Esgotado</option>
-          <option value="em_breve">Em breve</option>
-        </select>
-      </label>
-    </div>
-    <div class="grid2">
-      <label>Preço físico (R$)<input type="number" step="0.01" id="f-preco-fisico"></label>
-      <label>Preço e-book (R$)<input type="number" step="0.01" id="f-preco-ebook"></label>
-    </div>
-    <label>Selo (ex.: Lançamento)<input type="text" id="f-selo"></label>
-    <label>URL da capa<input type="text" id="f-capa"></label>
-    <label>Sinopse<textarea id="f-sinopse"></textarea></label>
-    <div class="linha-acoes">
-      <button class="btn" id="btn-salvar">Salvar</button>
-      <button class="btn secundario" id="btn-cancelar" style="display:none">Cancelar edição</button>
-    </div>
-    <div class="erro" id="form-erro"></div>
+  <div class="abas">
+    <button class="aba ativa" data-aba="livros">Livros</button>
+    <button class="aba" data-aba="avaliacoes">Avaliações</button>
+    <button class="aba" data-aba="leitores">Leitores</button>
   </div>
 
-  <div id="lista-livros">Carregando…</div>
+  <div class="secao ativa" id="secao-livros">
+    <div class="cartao">
+      <h3 id="form-titulo">Novo livro</h3>
+      <input type="hidden" id="livro-id">
+      <label>Título<input type="text" id="f-titulo"></label>
+      <label>Subtítulo<input type="text" id="f-subtitulo"></label>
+      <div class="grid2">
+        <label>Autor
+          <select id="f-autor"></select>
+        </label>
+        <label>Status
+          <select id="f-status">
+            <option value="rascunho">Rascunho</option>
+            <option value="publicado">Publicado</option>
+            <option value="esgotado">Esgotado</option>
+            <option value="em_breve">Em breve</option>
+          </select>
+        </label>
+      </div>
+      <div class="grid2">
+        <label>Preço físico (R$)<input type="number" step="0.01" id="f-preco-fisico"></label>
+        <label>Preço e-book (R$)<input type="number" step="0.01" id="f-preco-ebook"></label>
+      </div>
+      <label>Selo (ex.: Lançamento)<input type="text" id="f-selo"></label>
+      <label>URL da capa<input type="text" id="f-capa"></label>
+      <label>Sinopse<textarea id="f-sinopse"></textarea></label>
+      <div class="linha-acoes-lista">
+        <button class="btn" id="btn-salvar">Salvar</button>
+        <button class="btn secundario" id="btn-cancelar" style="display:none">Cancelar edição</button>
+      </div>
+      <div class="erro" id="form-erro"></div>
+    </div>
 
-  <div class="barra" style="margin-top:36px">
-    <h1>Avaliações pendentes</h1>
+    <div id="lista-livros">Carregando…</div>
   </div>
-  <div id="lista-avaliacoes">Carregando…</div>
+
+  <div class="secao" id="secao-avaliacoes">
+    <div id="lista-avaliacoes">Carregando…</div>
+  </div>
+
+  <div class="secao" id="secao-leitores">
+    <div id="lista-leitores">Carregando…</div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -97,6 +112,16 @@ const sb = supabase.createClient(
 
 const elLogin = document.getElementById('login');
 const elPainel = document.getElementById('painel');
+
+document.querySelectorAll('.aba').forEach(function (aba) {
+  aba.addEventListener('click', function () {
+    document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
+    document.querySelectorAll('.secao').forEach(s => s.classList.remove('ativa'));
+    aba.classList.add('ativa');
+    document.getElementById('secao-' + aba.dataset.aba).classList.add('ativa');
+    if (aba.dataset.aba === 'leitores') carregarLeitores();
+  });
+});
 
 async function verificarSessao() {
   const { data: { session } } = await sb.auth.getSession();
@@ -217,10 +242,12 @@ async function carregarLivros() {
       + '<h3>' + l.titulo + '<span class="tag">' + l.status + '</span></h3>'
       + '<div class="meta">' + autor + (precos.length ? ' · ' + precos.join(' · ') : '') + '</div>'
       + '<div class="linha-acoes-lista">'
-      + '<button onclick="editarLivro(\'' + l.id + '\')">Editar</button>'
-      + '<button class="perigo" style="color:#a11" onclick="excluirLivro(\'' + l.id + '\', ' + JSON.stringify(l.titulo) + ')">Excluir</button>'
+      + '<button data-editar="' + l.id + '">Editar</button>'
+      + '<button style="color:#a11" data-excluir="' + l.id + '" data-titulo="' + l.titulo.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;') + '">Excluir</button>'
       + '</div></div>';
   }).join('');
+  lista.querySelectorAll('[data-editar]').forEach(b => b.addEventListener('click', () => editarLivro(b.getAttribute('data-editar'))));
+  lista.querySelectorAll('[data-excluir]').forEach(b => b.addEventListener('click', () => excluirLivro(b.getAttribute('data-excluir'), b.getAttribute('data-titulo'))));
 }
 
 async function carregarAvaliacoes() {
@@ -242,7 +269,7 @@ async function carregarAvaliacoes() {
       + (a.comentario ? '<div style="font-size:14px;margin-bottom:10px">' + a.comentario + '</div>' : '')
       + '<div class="linha-acoes-lista">'
       + '<button data-aprovar="' + a.id + '" style="background:#1a7a1a;color:#fff;border-color:#1a7a1a">Aprovar</button>'
-      + '<button class="perigo" style="color:#a11" data-rejeitar="' + a.id + '">Rejeitar</button>'
+      + '<button style="color:#a11" data-rejeitar="' + a.id + '">Rejeitar</button>'
       + '</div></div>';
   }).join('');
   lista.querySelectorAll('[data-aprovar]').forEach(b => b.addEventListener('click', () => moderarAvaliacao(b.getAttribute('data-aprovar'), 'aprovada')));
@@ -253,6 +280,23 @@ async function moderarAvaliacao(id, novoStatus) {
   const { error } = await sb.from('avaliacoes').update({ status: novoStatus }).eq('id', id);
   if (error) { alert('Erro: ' + error.message); return; }
   carregarAvaliacoes();
+}
+
+async function carregarLeitores() {
+  const lista = document.getElementById('lista-leitores');
+  lista.innerHTML = 'Carregando…';
+  const { data, error } = await sb.from('leitores').select('*, avaliacoes(livros(titulo))').order('criado_em', { ascending: false });
+  if (error) { lista.innerHTML = '<p class="erro">Erro ao carregar: ' + error.message + '</p>'; return; }
+  if (!data.length) { lista.innerHTML = '<p>Nenhum leitor cadastrado ainda.</p>'; return; }
+  lista.innerHTML = data.map(l => {
+    const livros = (l.avaliacoes || []).map(a => a.livros && a.livros.titulo).filter(Boolean);
+    const livrosUnicos = [...new Set(livros)];
+    return '<div class="cartao">'
+      + '<h3>' + l.nome + '</h3>'
+      + '<div class="meta">' + l.celular + (l.idade ? ' · ' + l.idade + ' anos' : '') + (l.estado ? ' · ' + l.estado : '') + '</div>'
+      + (livrosUnicos.length ? '<div style="font-size:13px;margin-top:6px"><strong>Livros:</strong> ' + livrosUnicos.join(', ') + '</div>' : '<div style="font-size:13px;color:#999;margin-top:6px">Nenhum livro avaliado ainda.</div>')
+      + '</div>';
+  }).join('');
 }
 
 verificarSessao();
