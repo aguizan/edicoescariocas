@@ -81,6 +81,11 @@
   </div>
 
   <div id="lista-livros">Carregando…</div>
+
+  <div class="barra" style="margin-top:36px">
+    <h1>Avaliações pendentes</h1>
+  </div>
+  <div id="lista-avaliacoes">Carregando…</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -100,6 +105,7 @@ async function verificarSessao() {
     elPainel.classList.add('show');
     await carregarAutores();
     await carregarLivros();
+    await carregarAvaliacoes();
   } else {
     elPainel.classList.remove('show');
     elLogin.classList.add('show');
@@ -192,8 +198,8 @@ async function editarLivro(id) {
 
 async function excluirLivro(id, titulo) {
   if (!confirm('Excluir "' + titulo + '"? Essa ação não pode ser desfeita.')) return;
-  const { error, count } = await sb.from('livros').delete().eq('id', id).select();
-  if (error) { alert('Erro ao excluir: ' + error.message); console.error(error); return; }
+  const { error } = await sb.from('livros').delete().eq('id', id);
+  if (error) { alert('Erro ao excluir: ' + error.message); return; }
   carregarLivros();
 }
 
@@ -211,12 +217,42 @@ async function carregarLivros() {
       + '<h3>' + l.titulo + '<span class="tag">' + l.status + '</span></h3>'
       + '<div class="meta">' + autor + (precos.length ? ' · ' + precos.join(' · ') : '') + '</div>'
       + '<div class="linha-acoes-lista">'
-      + '<button data-editar="' + l.id + '">Editar</button>'
-      + '<button class="perigo" style="color:#a11" data-excluir="' + l.id + '" data-titulo="' + l.titulo.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;') + '">Excluir</button>'
+      + '<button onclick="editarLivro(\'' + l.id + '\')">Editar</button>'
+      + '<button class="perigo" style="color:#a11" onclick="excluirLivro(\'' + l.id + '\', ' + JSON.stringify(l.titulo) + ')">Excluir</button>'
       + '</div></div>';
   }).join('');
-  lista.querySelectorAll('[data-editar]').forEach(b => b.addEventListener('click', () => editarLivro(b.getAttribute('data-editar'))));
-  lista.querySelectorAll('[data-excluir]').forEach(b => b.addEventListener('click', () => excluirLivro(b.getAttribute('data-excluir'), b.getAttribute('data-titulo'))));
+}
+
+async function carregarAvaliacoes() {
+  const lista = document.getElementById('lista-avaliacoes');
+  const { data, error } = await sb.from('avaliacoes')
+    .select('*, livros(titulo), leitores(nome, celular, idade, estado)')
+    .eq('status', 'pendente')
+    .order('criado_em', { ascending: false });
+  if (error) { lista.innerHTML = '<p class="erro">Erro ao carregar: ' + error.message + '</p>'; return; }
+  if (!data.length) { lista.innerHTML = '<p>Nenhuma avaliação pendente.</p>'; return; }
+  lista.innerHTML = data.map(a => {
+    const livro = a.livros ? a.livros.titulo : '(livro removido)';
+    const leitor = a.leitores || {};
+    const estrelas = '★★★★★☆☆☆☆☆'.slice(5 - a.nota, 10 - a.nota);
+    return '<div class="cartao">'
+      + '<h3>' + livro + '<span class="tag">' + a.nota + '/5</span></h3>'
+      + '<div class="meta">' + (leitor.nome || a.nome || 'Leitor') + (leitor.celular ? ' · ' + leitor.celular : '') + (leitor.idade ? ' · ' + leitor.idade + ' anos' : '') + (leitor.estado ? ' · ' + leitor.estado : '') + '</div>'
+      + '<div style="color:#e8a33d;font-size:14px;margin-bottom:6px">' + estrelas + '</div>'
+      + (a.comentario ? '<div style="font-size:14px;margin-bottom:10px">' + a.comentario + '</div>' : '')
+      + '<div class="linha-acoes-lista">'
+      + '<button data-aprovar="' + a.id + '" style="background:#1a7a1a;color:#fff;border-color:#1a7a1a">Aprovar</button>'
+      + '<button class="perigo" style="color:#a11" data-rejeitar="' + a.id + '">Rejeitar</button>'
+      + '</div></div>';
+  }).join('');
+  lista.querySelectorAll('[data-aprovar]').forEach(b => b.addEventListener('click', () => moderarAvaliacao(b.getAttribute('data-aprovar'), 'aprovada')));
+  lista.querySelectorAll('[data-rejeitar]').forEach(b => b.addEventListener('click', () => moderarAvaliacao(b.getAttribute('data-rejeitar'), 'rejeitada')));
+}
+
+async function moderarAvaliacao(id, novoStatus) {
+  const { error } = await sb.from('avaliacoes').update({ status: novoStatus }).eq('id', id);
+  if (error) { alert('Erro: ' + error.message); return; }
+  carregarAvaliacoes();
 }
 
 verificarSessao();
